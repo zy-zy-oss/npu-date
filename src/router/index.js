@@ -10,14 +10,8 @@ const routes = [
   {
     path: '/questionnaire',
     name: 'Questionnaire',
-    component: () => import('@/views/Questionnaire.vue'),
+    component: () => import('@/views/questionnaire/Questionnaire.vue'),
     meta: { title: '匹配问卷' }
-  },
-  {
-    path: '/crush',
-    name: 'Crush',
-    component: () => import('@/views/Crush.vue'),
-    meta: { title: '心动标记' }
   },
   {
     path: '/questionnaire-complete',
