@@ -124,6 +124,17 @@ export const mockQuestionnaire = {
     {
       id: 3,
       type: 'radio',
+      title: '你在寻找什么',
+      key: 'lookingFor',
+      required: true,
+      options: [
+        { label: '找搭子', value: 'buddy' },
+        { label: '约会', value: 'date' }
+      ]
+    },
+    {
+      id: 4,
+      type: 'radio',
       title: '年级',
       key: 'grade',
       required: true,
@@ -136,7 +147,7 @@ export const mockQuestionnaire = {
       ]
     },
     {
-      id: 4,
+      id: 5,
       type: 'radio',
       title: '专业',
       key: 'major',
@@ -155,7 +166,7 @@ export const mockQuestionnaire = {
       ]
     },
     {
-      id: 5,
+      id: 6,
       type: 'radio',
       title: '所在校区',
       key: 'location',
@@ -167,7 +178,7 @@ export const mockQuestionnaire = {
       ]
     },
     {
-      id: 6,
+      id: 7,
       type: 'slider',
       title: '身高(cm)',
       key: 'height',
@@ -178,7 +189,7 @@ export const mockQuestionnaire = {
       defaultValue: 170
     },
     {
-      id: 7,
+      id: 8,
       type: 'checkbox',
       title: '兴趣爱好',
       key: 'hobbies',
@@ -203,7 +214,7 @@ export const mockQuestionnaire = {
       ]
     },
     {
-      id: 8,
+      id: 9,
       type: 'radio',
       title: '性格类型',
       key: 'personality',
@@ -217,7 +228,7 @@ export const mockQuestionnaire = {
       ]
     },
     {
-      id: 9,
+      id: 10,
       type: 'radio',
       title: '是否颜控',
       key: 'appearanceFirst',
@@ -228,7 +239,7 @@ export const mockQuestionnaire = {
       ]
     },
     {
-      id: 10,
+      id: 11,
       type: 'checkbox',
       title: '你在意对方的条件',
       key: 'preferences',
@@ -243,7 +254,7 @@ export const mockQuestionnaire = {
       ]
     },
     {
-      id: 11,
+      id: 12,
       type: 'textarea',
       title: '自我介绍',
       key: 'bio',
@@ -252,7 +263,7 @@ export const mockQuestionnaire = {
       maxLength: 200
     },
     {
-      id: 12,
+      id: 13,
       type: 'textarea',
       title: '理想对象描述',
       key: 'idealDesc',
@@ -261,7 +272,7 @@ export const mockQuestionnaire = {
       maxLength: 200
     },
     {
-      id: 13,
+      id: 14,
       type: 'email-verify',
       title: '邮箱验证',
       key: 'emailVerify',

@@ -1,21 +1,20 @@
 <template>
   <div class="questionnaire-page">
-    <!-- 背景 -->
-    <div class="page-bg"></div>
-    
-    <!-- 返回按钮 -->
-    <div class="header-bar">
-      <button class="back-btn" @click="$router.back()">
-        <span class="arrow">←</span> 返回
-      </button>
-      <h1 class="page-title">问卷调查</h1>
-      <div class="progress-text">{{ currentIndex + 1 }} / {{ questions.length }}</div>
-    </div>
-    
-    <!-- 进度条 -->
-    <div class="progress-container">
-      <div class="progress-bar">
-        <div class="progress-fill" :style="{ width: progress + '%' }"></div>
+    <!-- 头部 -->
+    <div class="header">
+      <div class="header-top">
+        <button class="back-btn" @click="$router.back()" title="返回">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="header-info">
+          <h1 class="page-title">填写您的信息</h1>
+          <div class="progress-info">{{ currentIndex + 1 }}/{{ questions.length }}</div>
+        </div>
+      </div>
+      <div class="progress-bar-wrapper">
+        <div class="progress-bar">
+          <div class="progress-fill" :style="{ width: progress + '%' }"></div>
+        </div>
       </div>
     </div>
     
@@ -37,6 +36,7 @@
               :value="option.value" 
               v-model="answers[currentQuestion.key]"
               class="radio-input"
+              @change="autoNextOnSingleChoice"
             />
             <span class="option-label">{{ option.label }}</span>
           </label>
@@ -82,56 +82,64 @@
         <div v-if="currentQuestion.type === 'email-verify'" class="email-verify-container">
           <!-- 第一步：输入邮箱 -->
           <div v-if="emailVerifyStep === 'input'" class="email-input-step">
-            <div class="email-input-group">
-              <input 
-                v-model="emailInput"
-                type="email"
-                :placeholder="currentQuestion.placeholder"
-                class="email-input"
-                @keyup.enter="sendVerifyCode"
-              />
+            <div class="email-form">
+              <div class="email-input-wrapper">
+                <input 
+                  v-model="emailLocalPart"
+                  type="text"
+                  placeholder="邮箱名称"
+                  class="email-local-input"
+                  @keyup.enter="sendVerifyCode"
+                />
+                <span class="email-at">@</span>
+                <select 
+                  v-model="emailDomain"
+                  class="email-domain-select"
+                >
+                  <option value="nwpu.edu.cn">nwpu.edu.cn</option>
+                  <option value="mail.nwpu.edu.cn">mail.nwpu.edu.cn</option>
+                </select>
+              </div>
               <button 
-                class="send-btn"
+                class="send-code-btn"
                 @click="sendVerifyCode"
                 :disabled="!isValidEmail || emailSending"
               >
-                {{ emailSending ? '发送中...' : '发送验证码' }}
+                {{ emailSending ? '...' : '发送' }}
               </button>
-            </div>
-            <div class="email-tips">
-              💡 请输入你的西北工业大学邮箱 (xxx@nwpu.edu.cn)
             </div>
           </div>
 
           <!-- 第二步：输入验证码 -->
-          <div v-if="emailVerifyStep === 'verify'" class="code-input-step">
-            <div class="countdown-text">
-              验证码已发送到 <strong>{{ emailInput }}</strong>，请输入验证码
-              <br />
-              <span class="countdown">{{ emailCountdown }}s 后重新发送</span>
+          <div v-if="emailVerifyStep === 'verify'" class="code-verify-step">
+            <div class="verify-hint">
+              已发送至 <span class="email-display">{{ emailInput }}</span>
             </div>
-            <div class="code-input-group">
+            <div class="verify-code-form">
               <input 
                 v-model="answers[currentQuestion.key]"
                 type="text"
-                placeholder="请输入6位验证码"
+                placeholder="验证码"
                 maxlength="6"
-                class="code-input"
-                @keyup.enter="emailVerifyStep = 'input'"
+                class="verify-code-input"
+                @keyup.enter="confirmEmailVerify"
               />
               <button 
-                class="verify-btn"
+                class="verify-confirm-btn"
                 @click="confirmEmailVerify"
               >
-                确认
+                验证
               </button>
             </div>
-            <button 
-              class="change-email-btn"
-              @click="changeEmail"
-            >
-              更换邮箱
-            </button>
+            <div class="verify-actions">
+              <button 
+                class="change-email-link"
+                @click="changeEmail"
+              >
+                换邮箱
+              </button>
+              <span class="countdown-hint">{{ emailCountdown }}s</span>
+            </div>
           </div>
         </div>
       </div>
@@ -145,24 +153,18 @@
         v-if="currentIndex > 0"
         class="nav-btn prev-btn"
         @click="prevQuestion"
+        title="上一题"
       >
-        ← 上一题
+        <i class="fas fa-chevron-left"></i>
       </button>
       <button 
         v-if="currentIndex < questions.length - 1"
         class="nav-btn next-btn"
         @click="nextQuestion"
         :disabled="!canNext"
+        title="下一题"
       >
-        下一题 →
-      </button>
-      <button 
-        v-if="currentIndex === questions.length - 1"
-        class="nav-btn submit-btn"
-        @click="submitQuestionnaire"
-        :disabled="!canSubmit || submitting"
-      >
-        {{ submitting ? '提交中...' : '完成提交' }}
+        <i class="fas fa-chevron-right"></i>
       </button>
     </div>
   </div>
@@ -184,14 +186,21 @@ const currentIndex = ref(0)
 const answers = ref({})
 
 // 邮箱验证相关
-const emailInput = ref('')
+const emailLocalPart = ref('')
+const emailDomain = ref('')
 const emailVerifyStep = ref('input') // 'input' 或 'verify'
 const emailSending = ref(false)
 const emailCountdown = ref(60)
 let countdownInterval = null
 
+const emailInput = computed(() => {
+  return emailLocalPart.value && emailDomain.value 
+    ? `${emailLocalPart.value}@${emailDomain.value}`
+    : ''
+})
+
 const isValidEmail = computed(() => {
-  return emailInput.value.endsWith('@nwpu.edu.cn')
+  return emailLocalPart.value.trim() !== '' && emailDomain.value !== ''
 })
 
 onMounted(async () => {
@@ -282,6 +291,14 @@ const handleCheckboxChange = (key, value) => {
   }
 }
 
+// 单选自动跳转到下一题
+const autoNextOnSingleChoice = () => {
+  // 延迟100ms后跳转，提供用户反馈
+  setTimeout(() => {
+    nextQuestion()
+  }, 100)
+}
+
 // 发送验证码
 const sendVerifyCode = async () => {
   if (!isValidEmail.value) {
@@ -320,38 +337,24 @@ const startCountdown = () => {
 }
 
 // 确认邮箱验证
-const confirmEmailVerify = () => {
+const confirmEmailVerify = async () => {
   if (!answers.value[currentQuestion.value.key] || answers.value[currentQuestion.value.key].length !== 6) {
     alert('请输入6位验证码')
     return
   }
   
-  // 验证码验证成功，返回邮箱输入界面
-  alert('验证成功！')
-  emailVerifyStep.value = 'input'
-  clearInterval(countdownInterval)
-  
-  // 移动到下一题
-  nextQuestion()
-}
-
-// 更换邮箱
-const changeEmail = () => {
-  emailInput.value = ''
-  emailVerifyStep.value = 'input'
-  answers.value[currentQuestion.value.key] = ''
-  clearInterval(countdownInterval)
-  emailCountdown.value = 60
-}
-
-const submitQuestionnaire = async () => {
+  // 验证码验证成功，自动提交问卷
   submitting.value = true
   try {
     const res = await submitApi(answers.value)
     if (res.code === 200) {
       userStore.setQuestionnaire(answers.value)
-      alert('问卷提交成功！')
-      router.push('/crush')
+       clearInterval(countdownInterval)
+       // 跳转到完成页面
+       router.push({
+         path: '/questionnaire-complete',
+         query: { email: emailInput.value }
+       })
     } else {
       alert(res.message || '提交失败')
     }
@@ -362,6 +365,17 @@ const submitQuestionnaire = async () => {
     submitting.value = false
   }
 }
+
+// 更换邮箱
+const changeEmail = () => {
+  emailLocalPart.value = ''
+  emailDomain.value = ''
+  emailVerifyStep.value = 'input'
+  answers.value[currentQuestion.value.key] = ''
+  clearInterval(countdownInterval)
+  emailCountdown.value = 60
+}
+
 </script>
 
 <style lang="scss" scoped>
@@ -375,7 +389,7 @@ const submitQuestionnaire = async () => {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #fafafa;
   position: relative;
   overflow-x: hidden;
 }
@@ -392,146 +406,141 @@ const submitQuestionnaire = async () => {
   pointer-events: none;
 }
 
-/* 头部栏 */
-.header-bar {
-  position: relative;
-  z-index: 10;
-  background: rgba(255, 255, 255, 0.95);
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-bottom: 3px solid #000;
-  margin-bottom: 12px;
+/* 头部 */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   
-  .back-btn {
-    background: white;
-    border: 2px solid #000;
-    border-radius: 6px;
-    padding: 8px 16px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 14px;
-    color: #333;
-    transition: all 0.3s ease;
+  .header-top {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
     
-    .arrow {
-      margin-right: 4px;
-      font-weight: 900;
+    .back-btn {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      background: #f5f5f5;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #333;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+      
+      &:hover {
+        background: #e8e8e8;
+        color: #000;
+      }
+      
+      &:active {
+        background: #ddd;
+      }
     }
     
-    &:hover {
-      background: #f0f0f0;
-      transform: scale(1.05);
-    }
-    
-    &:active {
-      transform: scale(0.95);
+    .header-info {
+      flex: 1;
+      
+      .page-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin: 0;
+        line-height: 1.2;
+      }
+      
+      .progress-info {
+        font-size: 12px;
+        color: #999;
+        margin-top: 4px;
+      }
     }
   }
   
-  .page-title {
-    font-size: 24px;
-    font-weight: 900;
-    color: #333;
-    margin: 0;
-    flex: 1;
-    text-align: center;
-    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
-  }
-  
-  .progress-text {
-    font-size: 16px;
-    font-weight: 700;
-    color: #667eea;
-    min-width: 80px;
-    text-align: right;
-  }
-}
-
-/* 进度条容器 */
-.progress-container {
-  position: relative;
-  z-index: 10;
-  padding: 0 20px 20px;
-  
-  .progress-bar {
-    width: 100%;
-    height: 8px;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 10px;
-    border: 2px solid #000;
-    overflow: hidden;
+  .progress-bar-wrapper {
+    padding: 0 20px 12px;
     
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-      border-radius: 8px;
-      transition: width 0.3s ease;
-      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    .progress-bar {
+      width: 100%;
+      height: 2px;
+      background: #e8e8e8;
+      border-radius: 1px;
+      overflow: hidden;
+      
+       .progress-fill {
+         height: 100%;
+         background: #333;
+         border-radius: 1px;
+         transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+       }
     }
   }
 }
 
-/* 内容容器 */
-.content-wrapper {
-  position: relative;
-  z-index: 10;
-  flex: 1;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  max-height: calc(100vh - 280px);
-  overflow-y: auto;
-}
+ /* 内容容器 */
+ .content-wrapper {
+   position: relative;
+   z-index: 10;
+   flex: 1;
+   padding: 32px 20px 100px;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: flex-start;
+   overflow-y: auto;
+   background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+ }
 
 /* 问卷卡片 */
 .question-card {
   width: 100%;
-  max-width: 600px;
-  background: white;
-  border: 4px solid #000;
-  border-radius: 16px;
+  max-width: 580px;
+  background: #fff;
+  border: none;
+  border-radius: 12px;
   padding: 32px;
-  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.15), 12px 12px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   animation: slideIn 0.4s ease-out;
   
   .question-meta {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 20px;
+    gap: 8px;
+    margin-bottom: 12px;
     
     .question-number {
-      font-size: 18px;
-      font-weight: 900;
-      color: #667eea;
-      background: rgba(102, 126, 234, 0.1);
-      padding: 4px 12px;
-      border-radius: 8px;
-      border: 2px solid #667eea;
+      font-size: 11px;
+      font-weight: 600;
+      color: #555;
+      background: transparent;
+      padding: 0;
     }
     
     .required-badge {
-      font-size: 12px;
-      font-weight: 700;
-      color: white;
-      background: #ff6b6b;
-      padding: 4px 12px;
-      border-radius: 6px;
-      border: 2px solid #d32f2f;
+      font-size: 10px;
+      font-weight: 600;
+      color: #ff6b6b;
+      background: transparent;
+      padding: 0;
+      margin-left: auto;
     }
   }
   
   .question-title {
     font-size: 20px;
-    font-weight: 900;
-    color: #333;
-    margin: 0 0 28px 0;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0 0 24px 0;
     line-height: 1.4;
-    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.05);
   }
 }
 
@@ -539,36 +548,39 @@ const submitQuestionnaire = async () => {
 .options-container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
   
-  .option {
-    display: flex;
-    align-items: center;
-    padding: 12px 16px;
-    background: #f9f9f9;
-    border: 2px solid #ddd;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-    
-    &:hover {
-      background: #f0f0f0;
-      border-color: #667eea;
-      transform: translateX(4px);
-    }
-    
-    input[type="radio"],
-    input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      margin-right: 12px;
+    .option {
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+      background: #f8f8f8;
+      border: none;
+      border-radius: 8px;
       cursor: pointer;
-      accent-color: #667eea;
-    }
+      transition: all 0.2s ease;
+      position: relative;
+      
+      &:hover {
+        background: #f0f0f0;
+      }
+      
+      &:active {
+        transform: scale(0.98);
+      }
+      
+      input[type="radio"],
+      input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        margin-right: 12px;
+        cursor: pointer;
+        accent-color: #555;
+        flex-shrink: 0;
+      }
     
     .option-label {
-      font-size: 16px;
+      font-size: 15px;
       color: #333;
       font-weight: 500;
       flex: 1;
@@ -579,20 +591,31 @@ const submitQuestionnaire = async () => {
 /* 文本输入 */
 .textarea-input {
   width: 100%;
-  padding: 12px 16px;
-  font-size: 16px;
-  border: 2px solid #ddd;
+  padding: 14px 16px;
+  font-size: 15px;
+  border: 2px solid #e8e8e8;
   border-radius: 8px;
   font-family: inherit;
   resize: vertical;
-  min-height: 120px;
-  transition: all 0.3s ease;
+  min-height: 140px;
+  transition: all 0.2s ease;
+  background: #f8f9fb;
+  color: #333;
   
-  &:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  &::placeholder {
+    color: #bbb;
   }
+  
+  &:hover {
+    border-color: #d0d0d0;
+  }
+  
+   &:focus {
+     outline: none;
+     border-color: #333;
+     background: #fff;
+     box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+   }
 }
 
 /* 滑块容器 */
@@ -603,165 +626,256 @@ const submitQuestionnaire = async () => {
     width: 100%;
     height: 6px;
     border-radius: 3px;
-    background: #ddd;
+    background: #e8e8e8;
     outline: none;
     -webkit-appearance: none;
     appearance: none;
+    cursor: pointer;
     
-    &::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      cursor: pointer;
-      border: 2px solid #000;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
-    
-    &::-moz-range-thumb {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      cursor: pointer;
-      border: 2px solid #000;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
+      &::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #555;
+        cursor: pointer;
+        border: none;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        transition: all 0.2s ease;
+      }
+      
+      &::-moz-range-thumb {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #555;
+        cursor: pointer;
+        border: none;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      }
   }
   
-  .slider-value {
-    text-align: center;
-    font-size: 28px;
-    color: #667eea;
-    font-weight: 900;
-    margin-top: 20px;
-    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
-  }
+    .slider-value {
+       text-align: center;
+       font-size: 32px;
+       color: #333;
+       font-weight: 700;
+       margin-top: 16px;
+     }
 }
 
 /* 邮箱验证容器 */
 .email-verify-container {
-  .email-input-step,
-  .code-input-step {
+  .email-form {
     display: flex;
-    flex-direction: column;
-    gap: 16px;
+    gap: 8px;
+    align-items: flex-start;
   }
   
-  .email-input-group,
-  .code-input-group {
+  .email-input-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    overflow: hidden;
+    
+     &:focus-within {
+       border-color: #333;
+       box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+     }
+  }
+  
+  .email-local-input {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 12px;
+    font-size: 14px;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    outline: none;
+    color: #333;
+    
+    &::placeholder {
+      color: #bbb;
+    }
+  }
+  
+  .email-at {
+    font-size: 13px;
+    color: #999;
+    font-weight: 400;
+    padding: 0 0.2px;
+    flex-shrink: 0;
+  }
+  
+  .email-domain-select {
+    width: 130px;
+    flex-shrink: 0;
+    padding: 2px;
+    font-size: 14px;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    outline: none;
+    color: #333;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 6px center;
+    padding-right: 20px;
+    
+    option {
+      color: #333;
+      background: #fff;
+      padding: 8px;
+    }
+  }
+  
+   .send-code-btn {
+     height: 40px;
+     padding: 0 14px;
+     font-size: 13px;
+     font-weight: 600;
+     border: 1px solid #ccc;
+     border-radius: 8px;
+     background: #333;
+     color: #fff;
+     cursor: pointer;
+     transition: all 0.2s ease;
+     white-space: nowrap;
+     flex-shrink: 0;
+     
+     &:hover:not(:disabled) {
+       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+       transform: translateY(-1px);
+     }
+     
+     &:active:not(:disabled) {
+       transform: translateY(0);
+       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+     }
+     
+     &:disabled {
+       opacity: 0.5;
+       cursor: not-allowed;
+     }
+   }
+  
+  // 第二步：验证码输入
+  .code-verify-step {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .verify-hint {
+    font-size: 13px;
+    color: #666;
+    padding: 10px 12px;
+    background: #f9f9f9;
+    border-radius: 6px;
+    border: 1px solid #e8e8e8;
+    
+     .email-display {
+       font-weight: 600;
+       color: #333;
+     }
+  }
+  
+  .verify-code-form {
     display: flex;
     gap: 8px;
     align-items: center;
   }
   
-  .email-input,
-  .code-input {
+  .verify-code-input {
     flex: 1;
-    padding: 12px 16px;
-    font-size: 16px;
-    border: 2px solid #ddd;
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 1px solid #e0e0e0;
     border-radius: 8px;
     font-family: inherit;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+    background: #fff;
+    color: #333;
+    
+    &::placeholder {
+      color: #bbb;
+    }
     
     &:focus {
       outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-    
-    &:disabled {
-      background: #f5f5f5;
-      cursor: not-allowed;
+      border-color: #333;
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
     }
   }
   
-  .send-btn,
-  .verify-btn {
-    padding: 12px 20px;
-    font-size: 14px;
-    font-weight: 700;
-    border: 2px solid #000;
-    border-radius: 8px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    white-space: nowrap;
-    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.1);
-    
-    &:hover:not(:disabled) {
-      transform: translate(-2px, -2px);
-      box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.2);
-    }
-    
-    &:active:not(:disabled) {
-      transform: translate(2px, 2px);
-      box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
-    }
-    
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  }
+   .verify-confirm-btn {
+     height: 40px;
+     padding: 0 16px;
+     font-size: 13px;
+     font-weight: 600;
+     border: 1px solid #ccc;
+     border-radius: 8px;
+     background: #333;
+     color: #fff;
+     cursor: pointer;
+     transition: all 0.2s ease;
+     flex-shrink: 0;
+     
+     &:hover:not(:disabled) {
+       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+       transform: translateY(-1px);
+     }
+     
+     &:active:not(:disabled) {
+       transform: translateY(0);
+       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+     }
+     
+     &:disabled {
+       opacity: 0.5;
+       cursor: not-allowed;
+     }
+   }
   
-  .email-tips {
-    font-size: 13px;
-    color: #666;
-    padding: 10px 12px;
-    background: #f0f4ff;
-    border-left: 3px solid #667eea;
-    border-radius: 4px;
-    margin-top: 8px;
-    font-weight: 500;
-  }
-  
-  .countdown-text {
-    font-size: 14px;
-    color: #333;
-    line-height: 1.6;
-    padding: 12px 16px;
-    background: #f9f9f9;
-    border-radius: 8px;
-    border: 2px solid #ddd;
+  .verify-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
     
-    strong {
-      color: #667eea;
-      font-weight: 700;
-    }
+     .change-email-link {
+       padding: 0;
+       border: none;
+       background: transparent;
+       color: #555;
+       cursor: pointer;
+       font-size: 13px;
+       font-weight: 500;
+       transition: all 0.2s ease;
+       
+       &:hover {
+         color: #333;
+         text-decoration: underline;
+       }
+       
+       &:active {
+         opacity: 0.8;
+       }
+     }
     
-    .countdown {
-      display: block;
-      margin-top: 8px;
-      color: #666;
-      font-size: 13px;
-    }
-  }
-  
-  .change-email-btn {
-    padding: 10px 16px;
-    font-size: 13px;
-    font-weight: 600;
-    border: 2px solid #ddd;
-    border-radius: 6px;
-    background: white;
-    color: #333;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    align-self: center;
-    
-    &:hover {
-      background: #f0f0f0;
-      border-color: #667eea;
-      color: #667eea;
-    }
-    
-    &:active {
-      transform: scale(0.95);
+    .countdown-hint {
+      color: #999;
+      font-weight: 500;
     }
   }
 }
@@ -776,55 +890,53 @@ const submitQuestionnaire = async () => {
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* 按钮区域 */
-.button-area {
-  position: relative;
-  z-index: 10;
-  background: rgba(255, 255, 255, 0.95);
-  padding: 16px 20px;
-  display: flex;
-  gap: 12px;
-  border-top: 3px solid #000;
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
-  flex-wrap: wrap;
-  
-  .nav-btn {
-    flex: 1;
-    min-width: 120px;
-    padding: 14px 20px;
-    font-size: 16px;
-    font-weight: 900;
-    border: 3px solid #000;
-    border-radius: 10px;
-    cursor: pointer;
-    background: white;
-    color: #333;
-    transition: all 0.3s ease;
-    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.1);
-    
-    &:hover:not(:disabled) {
-      background: #f0f0f0;
-      transform: translate(-2px, -2px);
-      box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.2);
-    }
-    
-    &:active:not(:disabled) {
-      transform: translate(2px, 2px);
-      box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
-    }
-    
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    
-    &.submit-btn {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border-color: #000;
-    }
+ /* 按钮区域 */
+ .button-area {
+   position: fixed;
+   bottom: 0;
+   left: 0;
+   right: 0;
+   z-index: 50;
+   background: #fff;
+   border-top: 1px solid #e8e8e8;
+   padding: 14px 20px;
+   display: flex;
+   gap: 12px;
+   justify-content: center;
+   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
+   
+   .nav-btn {
+     height: 40px;
+     padding: 0 16px;
+     font-size: 14px;
+     font-weight: 500;
+     border: none;
+     border-radius: 8px;
+     cursor: pointer;
+     background: #f5f5f5;
+     color: #666;
+     transition: all 0.2s ease;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     gap: 6px;
+     min-width: 44px;
+     
+      &:hover:not(:disabled) {
+        background: #e8e8e8;
+        color: #333;
+      }
+      
+      &:active:not(:disabled) {
+        background: #ddd;
+      }
+      
+       &:disabled {
+         opacity: 0.4;
+         cursor: not-allowed;
+       }
+     }
   }
-}
 
 /* 动画 */
 @keyframes slideIn {
@@ -841,20 +953,21 @@ const submitQuestionnaire = async () => {
 /* 响应式设计 */
 @media (max-width: 768px) {
   .header-bar {
-    flex-direction: column;
     gap: 12px;
     
     .back-btn {
-      width: 100%;
+      flex-shrink: 0;
     }
     
     .page-title {
       font-size: 20px;
+      flex: 1;
     }
     
     .progress-text {
-      width: 100%;
-      text-align: center;
+      font-size: 12px;
+      min-width: 50px;
+      text-align: right;
     }
   }
   

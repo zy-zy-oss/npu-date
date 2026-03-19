@@ -18,6 +18,12 @@ const routes = [
     name: 'Crush',
     component: () => import('@/views/Crush.vue'),
     meta: { title: '心动标记' }
+  },
+  {
+    path: '/questionnaire-complete',
+    name: 'QuestionnaireComplete',
+    component: () => import('@/views/QuestionnaireComplete.vue'),
+    meta: { title: '问卷完成' }
   }
 ]
 

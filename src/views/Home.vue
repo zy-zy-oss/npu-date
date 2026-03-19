@@ -10,7 +10,8 @@
       <!-- 标题 -->
       <div class="header">
         <h1 class="title">NPU Date</h1>
-        <p class="subtitle">遇见你的浪漫</p>
+        <p class="subtitle">别让好天气和好心情，在等待中过期。
+</p>
       </div>
       
       <!-- 开始按钮 -->
@@ -49,7 +50,7 @@ const handleStart = () => {
   align-items: center;
   justify-content: center;
   position: relative;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #fafafa;
 }
 
 /* 背景 Blob 图片 */
@@ -89,20 +90,22 @@ const handleStart = () => {
   animation: fadeInDown 0.8s ease-out;
   
   .title {
-    font-size: 60px;
-    font-weight: 900;
-    color: white;
+    font-size: 48px;
+    font-weight: 700;
+    color: #1a1a1a;
     margin: 0;
-    text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.3), 6px 6px 0 rgba(0, 0, 0, 0.1);
-    letter-spacing: 2px;
+    text-shadow: none;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
   }
   
   .subtitle {
-    font-size: 24px;
-    color: rgba(255, 255, 255, 0.95);
-    margin: 16px 0 0 0;
-    font-weight: 600;
-    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
+    font-size: 16px;
+    color: #666;
+    margin: 12px 0 0 0;
+    font-weight: 400;
+    text-shadow: none;
+    letter-spacing: 0.3px;
   }
 }
 
@@ -114,17 +117,19 @@ const handleStart = () => {
   animation: fadeInUp 0.8s ease-out 0.2s both;
   
   .start-btn {
-    padding: 20px 60px;
-    font-size: 28px;
-    font-weight: 900;
-    color: #333;
-    background: white;
-    border: 4px solid #000;
-    border-radius: 12px;
+    padding: 12px 48px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #1a1a1a;
+    background: #fff;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.2), inset 0 -4px 0 rgba(0, 0, 0, 0.1);
-    letter-spacing: 2px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    letter-spacing: 0;
     position: relative;
     overflow: hidden;
     
@@ -141,8 +146,9 @@ const handleStart = () => {
     
     &:hover {
       background: #fff;
-      box-shadow: 12px 12px 0 rgba(0, 0, 0, 0.25), inset 0 -4px 0 rgba(0, 0, 0, 0.15);
-      transform: translate(-2px, -2px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      transform: none;
+      border-color: #d0d0d0;
       
       &::before {
         left: 100%;
@@ -150,8 +156,8 @@ const handleStart = () => {
     }
     
     &:active {
-      box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.2), inset 0 -2px 0 rgba(0, 0, 0, 0.1);
-      transform: translate(2px, 2px);
+      transform: none;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
     }
   }
 }
@@ -203,10 +209,8 @@ const handleStart = () => {
   
   .button-container {
     .start-btn {
-      padding: 16px 48px;
-      font-size: 22px;
-      border-width: 3px;
-      box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.2), inset 0 -3px 0 rgba(0, 0, 0, 0.1);
+      padding: 12px 40px;
+      font-size: 16px;
     }
   }
   
@@ -236,10 +240,8 @@ const handleStart = () => {
   
   .button-container {
     .start-btn {
-      padding: 14px 40px;
-      font-size: 18px;
-      border-width: 3px;
-      box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.2), inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+      padding: 11px 36px;
+      font-size: 14px;
     }
   }
   
