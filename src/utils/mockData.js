@@ -270,14 +270,6 @@ export const mockQuestionnaire = {
       required: false,
       placeholder: '描述一下你理想中的TA~',
       maxLength: 200
-    },
-    {
-      id: 14,
-      type: 'email-verify',
-      title: '邮箱验证',
-      key: 'emailVerify',
-      required: true,
-      placeholder: '请输入你的西北工业大学邮箱'
     }
   ]
 }

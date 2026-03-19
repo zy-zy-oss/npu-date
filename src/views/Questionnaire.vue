@@ -20,10 +20,82 @@
     
     <!-- 问卷内容 -->
     <div class="content-wrapper">
-      <div v-if="currentQuestion" class="question-card">
+      <!-- 问卷完成后的邮箱输入界面 -->
+      <div v-if="questionnaireDone" class="email-verify-card">
+        <div class="complete-header">
+          <h2>问卷已完成！</h2>
+          <p>请输入您的邮箱进行验证</p>
+        </div>
+
+        <!-- 邮箱输入步骤 -->
+        <div v-if="emailVerifyStep === 'input'" class="email-input-step">
+          <div class="email-form">
+            <div class="email-input-wrapper">
+              <input 
+                v-model="emailLocalPart"
+                type="text"
+                placeholder="邮箱名称"
+                class="email-local-input"
+                @keyup.enter="sendVerifyCode"
+              />
+              <span class="email-at">@</span>
+              <select 
+                v-model="emailDomain"
+                class="email-domain-select"
+              >
+                <option value="nwpu.edu.cn">nwpu.edu.cn</option>
+                <option value="mail.nwpu.edu.cn">mail.nwpu.edu.cn</option>
+              </select>
+            </div>
+            <button 
+              class="send-code-btn"
+              @click="sendVerifyCode"
+              :disabled="!isValidEmail || emailSending"
+            >
+              {{ emailSending ? '...' : '发送' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- 验证码输入步骤 -->
+        <div v-if="emailVerifyStep === 'verify'" class="code-verify-step">
+          <div class="verify-hint">
+            已发送至 <span class="email-display">{{ emailInput }}</span>
+          </div>
+          <div class="verify-code-form">
+            <input 
+              v-model="emailVerifyCode"
+              type="text"
+              placeholder="验证码"
+              maxlength="6"
+              class="verify-code-input"
+              @keyup.enter="confirmEmailVerify"
+            />
+            <button 
+              class="verify-confirm-btn"
+              @click="confirmEmailVerify"
+              :disabled="submitting"
+            >
+              {{ submitting ? '提交中...' : '验证' }}
+            </button>
+          </div>
+          <div class="verify-actions">
+            <button 
+              class="change-email-link"
+              @click="changeEmail"
+              :disabled="emailCountdown > 0"
+            >
+              换邮箱
+            </button>
+            <span class="countdown-hint">{{ emailCountdown }}s</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 问卷问题卡片 -->
+      <div v-else-if="currentQuestion" class="question-card">
         <div class="question-meta">
           <span class="question-number">Q{{ currentQuestion.id }}</span>
-          <span class="required-badge" v-if="currentQuestion.required">必填</span>
         </div>
         
         <h2 class="question-title">{{ currentQuestion.title }}</h2>
@@ -77,78 +149,13 @@
           />
           <div class="slider-value">{{ answers[currentQuestion.key] }}</div>
         </div>
-
-        <!-- 邮箱验证 -->
-        <div v-if="currentQuestion.type === 'email-verify'" class="email-verify-container">
-          <!-- 第一步：输入邮箱 -->
-          <div v-if="emailVerifyStep === 'input'" class="email-input-step">
-            <div class="email-form">
-              <div class="email-input-wrapper">
-                <input 
-                  v-model="emailLocalPart"
-                  type="text"
-                  placeholder="邮箱名称"
-                  class="email-local-input"
-                  @keyup.enter="sendVerifyCode"
-                />
-                <span class="email-at">@</span>
-                <select 
-                  v-model="emailDomain"
-                  class="email-domain-select"
-                >
-                  <option value="nwpu.edu.cn">nwpu.edu.cn</option>
-                  <option value="mail.nwpu.edu.cn">mail.nwpu.edu.cn</option>
-                </select>
-              </div>
-              <button 
-                class="send-code-btn"
-                @click="sendVerifyCode"
-                :disabled="!isValidEmail || emailSending"
-              >
-                {{ emailSending ? '...' : '发送' }}
-              </button>
-            </div>
-          </div>
-
-          <!-- 第二步：输入验证码 -->
-          <div v-if="emailVerifyStep === 'verify'" class="code-verify-step">
-            <div class="verify-hint">
-              已发送至 <span class="email-display">{{ emailInput }}</span>
-            </div>
-            <div class="verify-code-form">
-              <input 
-                v-model="answers[currentQuestion.key]"
-                type="text"
-                placeholder="验证码"
-                maxlength="6"
-                class="verify-code-input"
-                @keyup.enter="confirmEmailVerify"
-              />
-              <button 
-                class="verify-confirm-btn"
-                @click="confirmEmailVerify"
-              >
-                验证
-              </button>
-            </div>
-            <div class="verify-actions">
-              <button 
-                class="change-email-link"
-                @click="changeEmail"
-              >
-                换邮箱
-              </button>
-              <span class="countdown-hint">{{ emailCountdown }}s</span>
-            </div>
-          </div>
-        </div>
       </div>
       
       <div v-if="loading" class="loading-state">加载中...</div>
     </div>
     
     <!-- 按钮区域 -->
-    <div class="button-area">
+    <div class="button-area" v-if="!questionnaireDone">
       <button 
         v-if="currentIndex > 0"
         class="nav-btn prev-btn"
@@ -165,6 +172,15 @@
         title="下一题"
       >
         <i class="fas fa-chevron-right"></i>
+      </button>
+      <button 
+        v-if="currentIndex === questions.length - 1"
+        class="nav-btn complete-btn"
+        @click="completeQuestionnaire"
+        :disabled="!canNext"
+        title="完成问卷"
+      >
+        完成
       </button>
     </div>
   </div>
@@ -188,9 +204,11 @@ const answers = ref({})
 // 邮箱验证相关
 const emailLocalPart = ref('')
 const emailDomain = ref('')
+const emailVerifyCode = ref('')
 const emailVerifyStep = ref('input') // 'input' 或 'verify'
 const emailSending = ref(false)
 const emailCountdown = ref(60)
+const questionnaireDone = ref(false) // 问卷是否已完成
 let countdownInterval = null
 
 const emailInput = computed(() => {
@@ -245,27 +263,10 @@ const canNext = computed(() => {
   const answer = answers.value[q.key]
   if (q.type === 'checkbox') {
     return answer && answer.length > 0
-  } else if (q.type === 'email-verify') {
-    // 邮箱验证类型检查验证码是否已填
-    return answer && answer.length === 6
   }
   return !!answer
 })
 
-const canSubmit = computed(() => {
-  // 检查所有必填项
-  return questions.value
-    .filter(q => q.required)
-    .every(q => {
-      const answer = answers.value[q.key]
-      if (q.type === 'checkbox') {
-        return answer && answer.length > 0
-      } else if (q.type === 'email-verify') {
-        return answer && answer.length === 6
-      }
-      return !!answer
-    })
-})
 
 const nextQuestion = () => {
   if (currentIndex.value < questions.value.length - 1) {
@@ -299,6 +300,28 @@ const autoNextOnSingleChoice = () => {
   }, 100)
 }
 
+// 完成问卷，进入邮箱验证阶段
+const completeQuestionnaire = () => {
+  // 校验所有必填项
+  const allAnswered = questions.value
+    .filter(q => q.required)
+    .every(q => {
+      const answer = answers.value[q.key]
+      if (q.type === 'checkbox') {
+        return answer && answer.length > 0
+      }
+      return !!answer
+    })
+  
+  if (!allAnswered) {
+    alert('请先完成所有必填项')
+    return
+  }
+  
+  // 问卷校验通过，切换到邮箱输入界面
+  questionnaireDone.value = true
+}
+
 // 发送验证码
 const sendVerifyCode = async () => {
   if (!isValidEmail.value) {
@@ -311,6 +334,7 @@ const sendVerifyCode = async () => {
     // 模拟发送验证码
     await new Promise(resolve => setTimeout(resolve, 500))
     emailVerifyStep.value = 'verify'
+    emailVerifyCode.value = ''
     emailCountdown.value = 60
     
     // 启动倒计时
@@ -331,30 +355,30 @@ const startCountdown = () => {
     emailCountdown.value--
     if (emailCountdown.value <= 0) {
       clearInterval(countdownInterval)
-      emailCountdown.value = 60
+      emailCountdown.value = 0
     }
   }, 1000)
 }
 
 // 确认邮箱验证
 const confirmEmailVerify = async () => {
-  if (!answers.value[currentQuestion.value.key] || answers.value[currentQuestion.value.key].length !== 6) {
+  if (!emailVerifyCode.value || emailVerifyCode.value.length !== 6) {
     alert('请输入6位验证码')
     return
   }
   
-  // 验证码验证成功，自动提交问卷
+  // 验证码验证成功，提交问卷
   submitting.value = true
   try {
     const res = await submitApi(answers.value)
     if (res.code === 200) {
       userStore.setQuestionnaire(answers.value)
-       clearInterval(countdownInterval)
-       // 跳转到完成页面
-       router.push({
-         path: '/questionnaire-complete',
-         query: { email: emailInput.value }
-       })
+      clearInterval(countdownInterval)
+      // 跳转到完成页面
+      router.push({
+        path: '/questionnaire-complete',
+        query: { email: emailInput.value }
+      })
     } else {
       alert(res.message || '提交失败')
     }
@@ -370,8 +394,8 @@ const confirmEmailVerify = async () => {
 const changeEmail = () => {
   emailLocalPart.value = ''
   emailDomain.value = ''
+  emailVerifyCode.value = ''
   emailVerifyStep.value = 'input'
-  answers.value[currentQuestion.value.key] = ''
   clearInterval(countdownInterval)
   emailCountdown.value = 60
 }
@@ -497,7 +521,7 @@ const changeEmail = () => {
    align-items: center;
    justify-content: flex-start;
    overflow-y: auto;
-   background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+   background: #fff;
  }
 
 /* 问卷卡片 */
@@ -548,41 +572,46 @@ const changeEmail = () => {
 .options-container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   
     .option {
       display: flex;
       align-items: center;
-      padding: 14px 16px;
-      background: #f8f8f8;
+      padding: 12px 0;
+      background: transparent;
       border: none;
-      border-radius: 8px;
+      border-bottom: 1px solid #e8e8e8;
+      border-radius: 0;
       cursor: pointer;
       transition: all 0.2s ease;
       position: relative;
       
+      &:last-child {
+        border-bottom: none;
+      }
+      
       &:hover {
-        background: #f0f0f0;
+        background: transparent;
       }
       
       &:active {
-        transform: scale(0.98);
+        transform: none;
       }
       
       input[type="radio"],
       input[type="checkbox"] {
-        width: 20px;
-        height: 20px;
+        width: 18px;
+        height: 18px;
         margin-right: 12px;
         cursor: pointer;
-        accent-color: #555;
+        accent-color: #333;
         flex-shrink: 0;
       }
     
     .option-label {
       font-size: 15px;
       color: #333;
-      font-weight: 500;
+      font-weight: 400;
       flex: 1;
     }
   }
@@ -591,30 +620,31 @@ const changeEmail = () => {
 /* 文本输入 */
 .textarea-input {
   width: 100%;
-  padding: 14px 16px;
+  padding: 12px 14px;
   font-size: 15px;
-  border: 2px solid #e8e8e8;
-  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
   font-family: inherit;
-  resize: vertical;
-  min-height: 140px;
+  resize: none;
+  min-height: 100px;
+  max-height: 120px;
   transition: all 0.2s ease;
-  background: #f8f9fb;
+  background: #fff;
   color: #333;
+  line-height: 1.5;
   
   &::placeholder {
-    color: #bbb;
+    color: #ccc;
   }
   
   &:hover {
-    border-color: #d0d0d0;
+    border-color: #ccc;
   }
   
    &:focus {
      outline: none;
      border-color: #333;
-     background: #fff;
-     box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+     box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08);
    }
 }
 
@@ -663,6 +693,256 @@ const changeEmail = () => {
        font-weight: 700;
        margin-top: 16px;
      }
+}
+
+/* 邮箱验证卡片 */
+.email-verify-card {
+  width: 100%;
+  max-width: 580px;
+  background: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  animation: slideIn 0.4s ease-out;
+  
+  .complete-header {
+    text-align: center;
+    margin-bottom: 32px;
+    
+    h2 {
+      font-size: 24px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin: 0 0 8px 0;
+    }
+    
+    p {
+      font-size: 14px;
+      color: #666;
+      margin: 0;
+    }
+  }
+  
+  // 邮箱输入步骤样式
+  .email-input-step {
+    .email-form {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+    
+    .email-input-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      overflow: hidden;
+      
+      &:focus-within {
+        border-color: #333;
+        box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+      }
+    }
+    
+    .email-local-input {
+      flex: 1;
+      min-width: 0;
+      padding: 10px 12px;
+      font-size: 14px;
+      border: none;
+      background: transparent;
+      font-family: inherit;
+      outline: none;
+      color: #333;
+      
+      &::placeholder {
+        color: #bbb;
+      }
+    }
+    
+    .email-at {
+      font-size: 13px;
+      color: #999;
+      font-weight: 400;
+      padding: 0 0.2px;
+      flex-shrink: 0;
+    }
+    
+    .email-domain-select {
+      width: 130px;
+      flex-shrink: 0;
+      padding: 2px;
+      font-size: 14px;
+      border: none;
+      background: transparent;
+      font-family: inherit;
+      outline: none;
+      color: #333;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 6px center;
+      padding-right: 20px;
+      
+      option {
+        color: #333;
+        background: #fff;
+        padding: 8px;
+      }
+    }
+    
+    .send-code-btn {
+      height: 40px;
+      padding: 0 14px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #333;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      flex-shrink: 0;
+      
+      &:hover:not(:disabled) {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        transform: translateY(-1px);
+      }
+      
+      &:active:not(:disabled) {
+        transform: translateY(0);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+      }
+      
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+  
+  // 验证码输入步骤样式
+  .code-verify-step {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .verify-hint {
+    font-size: 13px;
+    color: #666;
+    padding: 10px 12px;
+    background: #f9f9f9;
+    border-radius: 6px;
+    border: 1px solid #e8e8e8;
+    
+    .email-display {
+      font-weight: 600;
+      color: #333;
+    }
+  }
+  
+  .verify-code-form {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  
+  .verify-code-input {
+    flex: 1;
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    background: #fff;
+    color: #333;
+    
+    &::placeholder {
+      color: #bbb;
+    }
+    
+    &:focus {
+      outline: none;
+      border-color: #333;
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+    }
+  }
+  
+  .verify-confirm-btn {
+    height: 40px;
+    padding: 0 16px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: #333;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    
+    &:hover:not(:disabled) {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      transform: translateY(-1px);
+    }
+    
+    &:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    }
+    
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+  
+  .verify-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    
+    .change-email-link {
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: #555;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      
+      &:hover:not(:disabled) {
+        color: #333;
+        text-decoration: underline;
+      }
+      
+      &:active:not(:disabled) {
+        opacity: 0.8;
+      }
+      
+      &:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+    }
+    
+    .countdown-hint {
+      color: #999;
+      font-weight: 500;
+    }
+  }
 }
 
 /* 邮箱验证容器 */
@@ -899,41 +1179,63 @@ const changeEmail = () => {
    z-index: 50;
    background: #fff;
    border-top: 1px solid #e8e8e8;
-   padding: 14px 20px;
+   padding: 12px 16px;
    display: flex;
-   gap: 12px;
+   gap: 10px;
    justify-content: center;
    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
    
    .nav-btn {
-     height: 40px;
-     padding: 0 16px;
-     font-size: 14px;
-     font-weight: 500;
-     border: none;
-     border-radius: 8px;
+     height: 36px;
+     width: 36px;
+     padding: 0;
+     font-size: 16px;
+     font-weight: 400;
+     border: 1px solid #e0e0e0;
+     border-radius: 6px;
      cursor: pointer;
-     background: #f5f5f5;
+     background: #fff;
      color: #666;
      transition: all 0.2s ease;
      display: flex;
      align-items: center;
      justify-content: center;
-     gap: 6px;
-     min-width: 44px;
+     gap: 0;
+     min-width: 36px;
      
       &:hover:not(:disabled) {
-        background: #e8e8e8;
+        background: #f5f5f5;
         color: #333;
+        border-color: #ccc;
       }
       
       &:active:not(:disabled) {
-        background: #ddd;
+        background: #e8e8e8;
       }
       
        &:disabled {
-         opacity: 0.4;
+         opacity: 0.3;
          cursor: not-allowed;
+       }
+       
+       &.complete-btn {
+         width: auto;
+         padding: 0 20px;
+         background: #333;
+         color: #fff;
+         font-weight: 500;
+         min-width: auto;
+         border-color: #333;
+         
+         &:hover:not(:disabled) {
+           background: #1a1a1a;
+           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+           border-color: #1a1a1a;
+         }
+         
+         &:active:not(:disabled) {
+           background: #000;
+         }
        }
      }
   }
@@ -975,16 +1277,24 @@ const changeEmail = () => {
     padding: 16px;
   }
   
-  .question-card {
-    padding: 24px;
-    border-width: 3px;
+  .question-card,
+  .email-verify-card {
+    padding: 20px;
   }
   
   .button-area {
-    flex-direction: column;
+    flex-direction: row;
+    gap: 8px;
     
     .nav-btn {
-      width: 100%;
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+      
+      &.complete-btn {
+        width: auto;
+        padding: 0 16px;
+      }
     }
   }
 }
@@ -998,9 +1308,9 @@ const changeEmail = () => {
     }
   }
   
-  .question-card {
+  .question-card,
+  .email-verify-card {
     padding: 16px;
-    border-width: 2px;
     border-radius: 12px;
   }
   
@@ -1009,7 +1319,7 @@ const changeEmail = () => {
   }
   
   .options-container .option {
-    padding: 10px 12px;
+    padding: 10px 0;
     font-size: 15px;
   }
   
@@ -1018,14 +1328,36 @@ const changeEmail = () => {
     font-size: 15px;
   }
   
+  .email-verify-card {
+    .complete-header {
+      margin-bottom: 24px;
+      
+      h2 {
+        font-size: 20px;
+        margin-bottom: 4px;
+      }
+      
+      p {
+        font-size: 12px;
+      }
+    }
+  }
+  
   .button-area {
-    padding: 12px 16px;
+    padding: 10px 12px;
     gap: 8px;
     
     .nav-btn {
-      min-width: 100px;
-      padding: 12px 16px;
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      min-width: 36px;
       font-size: 14px;
+      
+      &.complete-btn {
+        width: auto;
+        padding: 0 16px;
+      }
     }
   }
 }
