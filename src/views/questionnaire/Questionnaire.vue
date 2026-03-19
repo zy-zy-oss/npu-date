@@ -9,7 +9,7 @@
       <EmailVerify v-if="questionnaireDone" />
 
       <!-- 问卷问题卡片 -->
-      <BaseInfoCard v-if="currentQuestion" :question="currentQuestion" :modelValue="answers[currentQuestion.key]"
+      <BaseInfoCard v-if="!questionnaireDone && currentQuestion" :question="currentQuestion" :modelValue="answers[currentQuestion.key]"
         @update:modelValue="handleAnswerUpdate" @answer="autoNextOnSingleChoice" />
 
       <div v-if="loading" class="loading-state">加载中...</div>
