@@ -95,7 +95,7 @@ export const mockUsers = [
   }
 ]
 
-// 问卷题目
+// 问卷题目 - 基础问卷
 export const mockQuestionnaire = {
   questions: [
     {
@@ -123,14 +123,13 @@ export const mockQuestionnaire = {
     },
     {
       id: 3,
-      type: 'radio',
-      title: '你在寻找什么',
-      key: 'lookingFor',
+      type: 'datetime',
+      title: '出生日期时间',
+      key: 'birthday',
       required: true,
-      options: [
-        { label: '找搭子', value: 'buddy' },
-        { label: '约会', value: 'date' }
-      ]
+      startYear: 1995,
+      endYear: 2006,
+      showPreview: true
     },
     {
       id: 4,
@@ -167,6 +166,14 @@ export const mockQuestionnaire = {
     },
     {
       id: 6,
+      type: 'region',
+      title: '家乡所在地',
+      key: 'hometown',
+      required: true,
+      showPreview: true
+    },
+    {
+      id: 7,
       type: 'radio',
       title: '所在校区',
       key: 'location',
@@ -178,7 +185,7 @@ export const mockQuestionnaire = {
       ]
     },
     {
-      id: 7,
+      id: 8,
       type: 'slider',
       title: '身高(cm)',
       key: 'height',
@@ -189,7 +196,7 @@ export const mockQuestionnaire = {
       defaultValue: 170
     },
     {
-      id: 8,
+      id: 9,
       type: 'checkbox',
       title: '兴趣爱好',
       key: 'hobbies',
@@ -214,7 +221,7 @@ export const mockQuestionnaire = {
       ]
     },
     {
-      id: 9,
+      id: 10,
       type: 'radio',
       title: '性格类型',
       key: 'personality',
@@ -228,7 +235,95 @@ export const mockQuestionnaire = {
       ]
     },
     {
-      id: 10,
+      id: 11,
+      type: 'textarea',
+      title: '自我介绍',
+      key: 'bio',
+      required: true,
+      placeholder: '请介绍一下自己，让TA更好地了解你~',
+      maxLength: 200
+    },
+    {
+      id: 12,
+      type: 'radio',
+      title: '你希望在这里寻找？',
+      key: 'lookingFor',
+      required: true,
+      options: [
+        { label: '对象', value: 'date' },
+        { label: '搭子', value: 'buddy' }
+      ]
+    }
+  ]
+}
+
+// 问卷题目 - 约会问卷
+export const mockQuestionnaire_1 = {
+  type: 'date',
+  questions: [
+    {
+      id: 1,
+      type: 'range',
+      title: '期望对方身高范围(cm)',
+      key: 'heightRange',
+      required: false,
+      min: 150,
+      max: 200,
+      step: 1,
+      minGap: 5,
+      unit: 'cm',
+      defaultMin: 160,
+      defaultMax: 180
+    },
+    {
+      id: 2,
+      type: 'range',
+      title: '期望对方年龄范围',
+      key: 'ageRange',
+      required: false,
+      min: 18,
+      max: 30,
+      step: 1,
+      minGap: 1,
+      unit: '岁',
+      defaultMin: 20,
+      defaultMax: 25
+    },
+    {
+      id: 3,
+      type: 'checkbox',
+      title: '期望对方年级',
+      key: 'preferGrade',
+      required: false,
+      options: [
+        { label: '2020级', value: '2020' },
+        { label: '2021级', value: '2021' },
+        { label: '2022级', value: '2022' },
+        { label: '2023级', value: '2023' },
+        { label: '2024级', value: '2024' }
+      ]
+    },
+    {
+      id: 4,
+      type: 'checkbox',
+      title: '期望对方专业',
+      key: 'preferMajor',
+      required: false,
+      options: [
+        { label: '计算机科学与技术', value: '计算机科学与技术' },
+        { label: '软件工程', value: '软件工程' },
+        { label: '电子信息工程', value: '电子信息工程' },
+        { label: '机械工程', value: '机械工程' },
+        { label: '自动化', value: '自动化' },
+        { label: '材料科学与工程', value: '材料科学与工程' },
+        { label: '飞行器设计与工程', value: '飞行器设计与工程' },
+        { label: '信息管理与信息系统', value: '信息管理与信息系统' },
+        { label: '工商管理', value: '工商管理' },
+        { label: '不限', value: '不限' }
+      ]
+    },
+    {
+      id: 5,
       type: 'radio',
       title: '是否颜控',
       key: 'appearanceFirst',
@@ -239,7 +334,7 @@ export const mockQuestionnaire = {
       ]
     },
     {
-      id: 11,
+      id: 6,
       type: 'checkbox',
       title: '你在意对方的条件',
       key: 'preferences',
@@ -250,25 +345,155 @@ export const mockQuestionnaire = {
         { label: '专业', value: 'major' },
         { label: '兴趣爱好', value: 'hobbies' },
         { label: '性格', value: 'personality' },
+        { label: '家乡', value: 'hometown' },
         { label: '只要有缘', value: 'fate' }
       ]
     },
     {
-      id: 12,
-      type: 'textarea',
-      title: '自我介绍',
-      key: 'bio',
-      required: true,
-      placeholder: '请介绍一下自己，让TA更好地了解你~',
-      maxLength: 200
+      id: 7,
+      type: 'checkbox',
+      title: '期望对方性格',
+      key: 'preferPersonality',
+      required: false,
+      options: [
+        { label: '开朗外向', value: '开朗外向' },
+        { label: '成熟稳重', value: '成熟稳重' },
+        { label: '文静内敛', value: '文静内敛' },
+        { label: '幽默风趣', value: '幽默风趣' },
+        { label: '温柔细腻', value: '温柔细腻' }
+      ]
     },
     {
-      id: 13,
+      id: 8,
+      type: 'radio',
+      title: '恋爱经历',
+      key: 'loveHistory',
+      required: false,
+      options: [
+        { label: '从未恋爱过', value: 'none' },
+        { label: '恋爱过1-2次', value: 'few' },
+        { label: '恋爱过3次以上', value: 'many' }
+      ]
+    },
+    {
+      id: 9,
+      type: 'radio',
+      title: '恋爱观',
+      key: 'loveView',
+      required: false,
+      options: [
+        { label: '奔着结婚去', value: 'marriage' },
+        { label: '认真谈一场', value: 'serious' },
+        { label: '顺其自然', value: 'natural' }
+      ]
+    },
+    {
+      id: 10,
       type: 'textarea',
       title: '理想对象描述',
       key: 'idealDesc',
       required: false,
       placeholder: '描述一下你理想中的TA~',
+      maxLength: 200
+    }
+  ]
+}
+
+// 问卷题目 - 搭子问卷
+export const mockQuestionnaire_2 = {
+  type: 'buddy',
+  questions: [
+    {
+      id: 1,
+      type: 'checkbox',
+      title: '寻找什么类型的搭子',
+      key: 'buddyType',
+      required: true,
+      options: [
+        { label: '学习搭子', value: 'study' },
+        { label: '运动搭子', value: 'sports' },
+        { label: '饭搭子', value: 'food' },
+        { label: '游戏搭子', value: 'game' },
+        { label: '旅行搭子', value: 'travel' },
+        { label: '购物搭子', value: 'shopping' },
+        { label: '观影搭子', value: 'movie' },
+        { label: '其他', value: 'other' }
+      ]
+    },
+    {
+      id: 2,
+      type: 'radio',
+      title: '期望搭子性别',
+      key: 'buddyGender',
+      required: false,
+      options: [
+        { label: '男', value: 'male' },
+        { label: '女', value: 'female' },
+        { label: '不限', value: 'any' }
+      ]
+    },
+    {
+      id: 3,
+      type: 'checkbox',
+      title: '期望搭子年级',
+      key: 'buddyGrade',
+      required: false,
+      options: [
+        { label: '2020级', value: '2020' },
+        { label: '2021级', value: '2021' },
+        { label: '2022级', value: '2022' },
+        { label: '2023级', value: '2023' },
+        { label: '2024级', value: '2024' }
+      ]
+    },
+    {
+      id: 4,
+      type: 'checkbox',
+      title: '共同活动时间',
+      key: 'availableTime',
+      required: false,
+      options: [
+        { label: '工作日白天', value: 'weekday_day' },
+        { label: '工作日晚上', value: 'weekday_night' },
+        { label: '周末白天', value: 'weekend_day' },
+        { label: '周末晚上', value: 'weekend_night' },
+        { label: '时间灵活', value: 'flexible' }
+      ]
+    },
+    {
+      id: 5,
+      type: 'radio',
+      title: '活动频率期望',
+      key: 'frequency',
+      required: false,
+      options: [
+        { label: '每周1-2次', value: 'low' },
+        { label: '每周3-4次', value: 'medium' },
+        { label: '每天', value: 'high' },
+        { label: '随缘', value: 'random' }
+      ]
+    },
+    {
+      id: 6,
+      type: 'checkbox',
+      title: '期望搭子性格',
+      key: 'buddyPersonality',
+      required: false,
+      options: [
+        { label: '开朗外向', value: '开朗外向' },
+        { label: '成熟稳重', value: '成熟稳重' },
+        { label: '文静内敛', value: '文静内敛' },
+        { label: '幽默风趣', value: '幽默风趣' },
+        { label: '温柔细腻', value: '温柔细腻' }
+      ]
+    },
+    {
+      id: 7,
+      type: 'textarea',
+      title: '对搭子的期望',
+      key: 'buddyExpectation',
+      required: false,
+      placeholder: '描述一下你期望的搭子是什么样的~',
       maxLength: 200
     }
   ]

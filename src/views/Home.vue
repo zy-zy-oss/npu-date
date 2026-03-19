@@ -1,11 +1,5 @@
 <template>
   <div class="home-page">
-    <!-- 倒计时 -->
-    <div class="countdown-display">
-      <div class="countdown-label">距离下次匹配</div>
-      <div class="countdown-value">{{ countdownDisplay }}</div>
-    </div>
-    
     <!-- 第一屏：首页 + 背景 -->
     <div class="home-section">
       <!-- 校徽背景 -->
@@ -37,18 +31,14 @@
         <div class="button-container">
           <button class="start-btn" @click="handleStart">开始</button>
         </div>
+        
+        <!-- 倒计时 -->
+        <div class="countdown-display">
+          <div class="countdown-label">距离下次匹配</div>
+          <div class="countdown-value">{{ countdownDisplay }}</div>
+        </div>
       </div>
     </div>
-    
-    <!-- 了解更多箭头 - 放在第一屏下方 -->
-    <button class="scroll-indicator" @click="handleLearnMore" aria-label="了解更多">
-      <span class="arrow">↓</span>
-    </button>
-    
-    <!-- 返回首页箭头 - 在第二屏顶部 -->
-    <button class="back-to-top" @click="handleBackToHome" aria-label="返回首页">
-      <span class="arrow">↑</span>
-    </button>
     
     <!-- 第二屏：介绍 -->
     <div class="intro-section" id="intro">
@@ -57,35 +47,47 @@
         
         <div class="info-grid">
           <div class="info-card">
-            <h3>心理学匹配</h3>
-            <p>基于九型人格理论和性格测评，精准匹配志同道合的伙伴</p>
+            <h3>科学匹配</h3>
+            <p>基于心理学、社会学理论与LLM驱动的个性化匹配算法，精准匹配志同道合的伙伴</p>
           </div>
           
           <div class="info-card">
-            <h3>多省高校参与</h3>
-            <p>涵盖陕西及周边省份 22 所高校：山西、河南、湖北、四川、重庆等</p>
+            <h3>多校参与</h3>
+            <p>立足西安，辐射西北。涵盖陕西及周边省份 22 所高校，包括山西、河南、湖北、四川、重庆等。</p>
           </div>
           
-          <div class="info-card">
-            <h3>科学严谨</h3>
-            <p>基于心理学研究，每周五进行匹配，确保用户体验</p>
-          </div>
           
           <div class="info-card">
             <h3>真实连接</h3>
-            <p>帮助大学生找到有共同兴趣和价值观的朋友</p>
+            <p>不定期举办线下联动活动，定期组织同城线下活动，让匹配到的伙伴有机会面对面交流</p>
+          </div>
+            
+          <div class="info-card">
+            <h3>隐私安全</h3>
+            <p>严格保护用户隐私，所有个人信息加密存储</p>
           </div>
         </div>
         
         <div class="provinces-section">
           <h3>参与高校所在省份</h3>
           <div class="provinces-list">
-            <span class="province-tag">陕西</span>
+            <span class="province-tag highlight">陕西</span>
             <span class="province-tag">山西</span>
             <span class="province-tag">河南</span>
             <span class="province-tag">湖北</span>
             <span class="province-tag">四川</span>
             <span class="province-tag">重庆</span>
+          </div>
+        </div>      
+        
+        <div class="contact-section">
+          <h3>联系我们</h3>
+          <p>如有任何问题或建议，欢迎通过以下方式联系我们：</p>
+          <div class="contact-info">
+            <a href="mailto:xilian@example.com" class="contact-item">
+              <i class="fas fa-envelope"></i>
+              <span>xilian@example.com</span>
+            </a>
           </div>
         </div>
       </div>
@@ -137,27 +139,42 @@ const logosList = ref([
 const countdownDisplay = ref('计算中...')
 let countdownInterval = null
 
-// 计算到下一个周五的倒计时
+// 计算到下一个周五17:00的倒计时
 const calculateCountdown = () => {
   const now = new Date()
   const currentDay = now.getDay() // 0 = 周日, 1 = 周一, ..., 5 = 周五
+  const currentHour = now.getHours()
+  const currentMinute = now.getMinutes()
+  const currentSecond = now.getSeconds()
+  const currentMs = now.getMilliseconds()
   
+  // 计算到下一个周五17:00的毫秒数
   let daysUntilFriday
+  
   if (currentDay === 5) {
-    // 今天是周五，下一个周五是7天后
-    daysUntilFriday = 7
+    // 今天是周五
+    const currentTimeValue = currentHour * 3600 + currentMinute * 60 + currentSecond
+    const targetTimeValue = 17 * 3600 // 17:00:00
+    
+    if (currentTimeValue < targetTimeValue) {
+      // 还没到17:00，今天就是匹配时间
+      daysUntilFriday = 0
+    } else {
+      // 已经过了17:00，下一个周五是7天后
+      daysUntilFriday = 7
+    }
   } else if (currentDay < 5) {
     // 本周内还没到周五
     daysUntilFriday = 5 - currentDay
   } else {
-    // 周五已经过去，下一个周五是下周
+    // 周五已经过去（周六或周日），下一个周五
     daysUntilFriday = 5 + (7 - currentDay)
   }
   
-  // 计算时间差
+  // 计算目标时间
   const nextFriday = new Date(now)
   nextFriday.setDate(nextFriday.getDate() + daysUntilFriday)
-  nextFriday.setHours(0, 0, 0, 0) // 设置为当天00:00
+  nextFriday.setHours(17, 0, 0, 0) // 设置为当天17:00:00.000
   
   const diff = nextFriday - now
   
@@ -198,77 +215,6 @@ onUnmounted(() => {
 const handleStart = () => {
   router.push('/questionnaire')
 }
-
-// 滚动状态控制
-let scrollLocked = true
-
-// 了解更多 - 平滑滚动到第二屏
-const handleLearnMore = () => {
-  scrollLocked = false
-  const introSection = document.getElementById('intro')
-  if (introSection) {
-    introSection.scrollIntoView({ behavior: 'smooth' })
-  }
-}
-
-// 返回首页 - 平滑滚动到第一屏
-const handleBackToHome = () => {
-  scrollLocked = true
-  const homeSection = document.querySelector('.home-section')
-  if (homeSection) {
-    homeSection.scrollIntoView({ behavior: 'smooth' })
-  }
-}
-
-// 监听滚动事件
-const handleScroll = (e) => {
-  const scrollTop = e.target.scrollTop || window.scrollY
-  
-  // 如果还在第一屏（scrollTop < 100vh 的像素值），保持禁用
-  const firstScreenHeight = window.innerHeight
-  if (scrollTop < firstScreenHeight) {
-    scrollLocked = true
-  } else {
-    // 一旦进入第二屏，允许滚动
-    scrollLocked = false
-  }
-}
-
-// 禁止滚动的事件处理
-const preventScroll = (e) => {
-  if (scrollLocked) {
-    e.preventDefault()
-  }
-}
-
-onMounted(() => {
-  // 这里可以从API获取实际的学校数量
-  // const data = await fetchSchoolCount()
-  // schoolCount.value = data.count
-  
-  // 启动倒计时
-  startCountdown()
-  
-  // 添加滚动监听
-  const homePage = document.querySelector('.home-page')
-  if (homePage) {
-    homePage.addEventListener('scroll', handleScroll)
-    homePage.addEventListener('wheel', preventScroll, { passive: false })
-    homePage.addEventListener('touchmove', preventScroll, { passive: false })
-  }
-})
-
-onUnmounted(() => {
-  const homePage = document.querySelector('.home-page')
-  if (homePage) {
-    homePage.removeEventListener('scroll', handleScroll)
-    homePage.removeEventListener('wheel', preventScroll)
-    homePage.removeEventListener('touchmove', preventScroll)
-  }
-  if (countdownInterval) {
-    clearInterval(countdownInterval)
-  }
-})
 </script>
 
 <style lang="scss" scoped>
@@ -279,11 +225,10 @@ onUnmounted(() => {
 
 .home-page {
   width: 100%;
-  height: 200vh;
+  min-height: 100vh;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
-  overflow-y: scroll;
   position: relative;
   background: #fafafa;
 }
@@ -299,18 +244,14 @@ onUnmounted(() => {
   justify-content: center;
 }
 
-/* 倒计时显示 - 透明无背景 */
+/* 倒计时显示 */
 .countdown-display {
-  position: fixed;
-  top: 40px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 100;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  margin-top: 20px;
   
   .countdown-label {
     font-size: 14px;
@@ -320,12 +261,11 @@ onUnmounted(() => {
   }
   
   .countdown-value {
-    font-size: 48px;
+    font-size: 32px;
     color: #333;
     font-weight: 300;
     letter-spacing: 2px;
     white-space: nowrap;
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
   }
 }
 
@@ -512,81 +452,15 @@ onUnmounted(() => {
   }
 }
 
-/* 向下滚动箭头 */
-.scroll-indicator {
-  position: absolute;
-  top: 65vh;
-  left: 50%;
-  transform: translateX(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 30;
-  pointer-events: auto;
-  
-  .arrow {
-    font-size: 24px;
-    color: #999;
-    font-weight: 300;
-    display: block;
-    animation: bounce 2s infinite;
-    transition: color 0.3s ease;
-  }
-  
-  &:hover .arrow {
-    color: #333;
-    animation: bounce 1s infinite;
-  }
-}
-
-/* 返回首页箭头 */
-.back-to-top {
-  position: absolute;
-  top: calc(100vh + 20px);
-  right: 20px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 50;
-  pointer-events: auto;
-  
-  .arrow {
-    font-size: 24px;
-    color: #000000;
-    font-weight: 400;
-    display: block;
-    animation: bounce 2s infinite;
-    transition: color 0.3s ease;
-  }
-  
-  &:hover .arrow {
-    color: #333;
-    animation: bounce 1s infinite;
-  }
-}
-
 /* 介绍区域 */
 .intro-section {
-  position: absolute;
-  top: 100vh;
-  left: 0;
   width: 100%;
-  height: 100vh;
   background: #fff;
   padding: 40px 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  z-index: 10;
 }
 
 .intro-content {
@@ -701,6 +575,64 @@ onUnmounted(() => {
     transform: none;
     background: #e8e8e8;
   }
+  
+  &.highlight {
+    background: #1890ff;
+    color: #fff;
+    
+    &:hover {
+      background: #40a9ff;
+    }
+  }
+}
+
+/* 联系我们 */
+.contact-section {
+  background: transparent;
+  padding: 30px 20px;
+  border-radius: 0;
+  border-top: 1px solid #e8e8e8;
+  box-shadow: none;
+  animation: fadeInUp 0.8s ease-out;
+  text-align: center;
+  
+  h3 {
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 12px;
+  }
+  
+  p {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 16px;
+  }
+}
+
+.contact-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.3s ease;
+  
+  i {
+    font-size: 16px;
+  }
+  
+  &:hover {
+    color: #333;
+  }
 }
 
 /* 动画 */
@@ -750,19 +682,19 @@ onUnmounted(() => {
 /* 响应式设计 */
 @media (max-width: 768px) {
   .countdown-display {
-    top: 30px;
+    margin-top: 16px;
     
     .countdown-label {
       font-size: 12px;
     }
     
     .countdown-value {
-      font-size: 28px;
+      font-size: 24px;
     }
   }
   
   .container {
-    gap: 60px;
+    gap: 40px;
   }
   
   .header {
@@ -831,19 +763,19 @@ onUnmounted(() => {
 
 @media (max-width: 480px) {
   .countdown-display {
-    top: 20px;
+    margin-top: 12px;
     
     .countdown-label {
       font-size: 10px;
     }
     
     .countdown-value {
-      font-size: 20px;
+      font-size: 18px;
     }
   }
   
   .container {
-    gap: 40px;
+    gap: 32px;
   }
   
   .header {
