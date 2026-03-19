@@ -1,0 +1,31 @@
+{
+  "name": "npu-date-web",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.5.1",
+    "@vant/use": "^1.6.0",
+    "axios": "^1.6.7",
+    "pinia": "^2.1.7",
+    "vant": "^4.8.3",
+    "vue": "^3.4.21",
+    "vue-router": "^4.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.4",
+    "autoprefixer": "^10.4.27",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "postcss": "^8.5.8",
+    "sass": "^1.71.1",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss": "^4.2.2",
+    "vite": "^5.1.5"
+  }
+}

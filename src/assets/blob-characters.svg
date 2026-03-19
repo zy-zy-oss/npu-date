@@ -1,0 +1,53 @@
+<svg viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect width="1000" height="600" fill="#fafafa"/>
+  
+  <!-- 橙色角色 -->
+  <g>
+    <path d="M 150 200 Q 120 180 100 220 Q 90 260 110 300 Q 130 320 160 310 Q 180 280 170 240 Q 160 200 150 200" fill="#FFB366" stroke="#000" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- 眼睛 -->
+    <circle cx="130" cy="230" r="8" fill="#000"/>
+    <!-- 嘴 -->
+    <path d="M 140 260 Q 145 270 150 260" stroke="#000" stroke-width="5" fill="none" stroke-linecap="round"/>
+  </g>
+  
+  <!-- 紫色角色（底部左） -->
+  <g>
+    <path d="M 200 380 Q 150 360 140 420 Q 135 480 200 500 Q 280 510 300 460 Q 310 400 280 370 Q 240 360 200 380" fill="#9B4FB8" stroke="#000" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- 眼睛 -->
+    <circle cx="190" cy="400" r="12" fill="#fff"/>
+    <circle cx="190" cy="400" r="7" fill="#000"/>
+    <circle cx="240" cy="400" r="12" fill="#fff"/>
+    <circle cx="240" cy="400" r="7" fill="#000"/>
+  </g>
+  
+  <!-- 绿色角色 -->
+  <g>
+    <path d="M 420 280 Q 380 250 360 310 Q 350 370 400 400 Q 470 410 490 350 Q 500 280 450 260 Q 430 260 420 280" fill="#B8E986" stroke="#000" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- 眼睛 -->
+    <circle cx="390" cy="310" r="10" fill="#000"/>
+    <circle cx="440" cy="310" r="10" fill="#000"/>
+    <!-- 嘴 -->
+    <path d="M 410 340 Q 415 350 430 340" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
+  </g>
+  
+  <!-- 青色角色 -->
+  <g>
+    <path d="M 650 200 Q 600 160 580 240 Q 570 320 640 350 Q 730 360 760 280 Q 770 190 700 160 Q 670 150 650 200" fill="#4ECDC4" stroke="#000" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- 眼睛 -->
+    <circle cx="640" cy="220" r="15" fill="#fff"/>
+    <circle cx="640" cy="220" r="8" fill="#000"/>
+    <!-- 嘴 -->
+    <path d="M 670 250 L 690 260" stroke="#000" stroke-width="5" stroke-linecap="round"/>
+  </g>
+  
+  <!-- 粉色角色 -->
+  <g>
+    <path d="M 800 350 Q 750 320 740 390 Q 735 460 800 490 Q 880 500 910 440 Q 920 360 880 330 Q 840 320 800 350" fill="#FF88BB" stroke="#000" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- 眼睛 -->
+    <circle cx="780" cy="380" r="10" fill="#000"/>
+    <circle cx="830" cy="380" r="10" fill="#000"/>
+    <!-- 嘴 -->
+    <path d="M 800 410 Q 805 420 820 410" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>
