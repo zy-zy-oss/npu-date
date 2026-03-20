@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { mockUsers, mockQuestionnaire, mockNotices, mockLogs, mockMatchResult, MOCK_DELAY } from '@/utils/mockData'
+import { mockUsers, mockQuestionnaire, mockQuestionnaire_1, mockQuestionnaire_2, mockNotices, mockLogs, mockMatchResult, MOCK_DELAY } from '@/utils/mockData'
 
 // 创建axios实例
 const service = axios.create({
@@ -107,6 +107,26 @@ export const getQuestionnaire = async () => {
   return {
     code: 200,
     data: mockQuestionnaire
+  }
+}
+
+// 获取子问卷题目（date/buddy）
+export const getSubQuestionnaire = async (type) => {
+  await delay(MOCK_DELAY)
+  if (type === 'date') {
+    return {
+      code: 200,
+      data: mockQuestionnaire_1
+    }
+  } else if (type === 'buddy') {
+    return {
+      code: 200,
+      data: mockQuestionnaire_2
+    }
+  }
+  return {
+    code: 400,
+    message: '问卷类型错误'
   }
 }
 

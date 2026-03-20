@@ -6,7 +6,7 @@
                 <i class="fas fa-arrow-left"></i>
             </button>
             <div class="header-info">
-                <h1 class="page-title">填写您的信息</h1>
+                <h1 class="page-title">{{ title || '填写您的信息' }}</h1>
                 <div class="progress-info">{{ currentIndex + 1 }}/{{ totalCount }}</div>
             </div>
         </div>
@@ -20,15 +20,20 @@
 <script setup>
 import { computed } from 'vue';
 const props = defineProps({
-    // 字符串类型，必传
+    // 当前题目索引
     currentIndex: {
         type: Number,
         required: true
     },
-    // 数字类型，非必传，有默认值
+    // 题目总数
     totalCount: {
         type: Number,
         required: true
+    },
+    // 页面标题
+    title: {
+        type: String,
+        default: ''
     }
 })
 const progress = computed(() => {

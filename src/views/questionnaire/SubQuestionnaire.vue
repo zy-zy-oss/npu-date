@@ -1,7 +1,7 @@
 <template>
   <div class="questionnaire-page">
     <!-- 头部 -->
-    <Header :currentIndex="currentIndex" :totalCount="questions.length" />
+    <Header :currentIndex="currentIndex" :totalCount="questions.length" :title="pageTitle" />
 
     <!-- 问卷内容 -->
     <div class="content-wrapper">
@@ -16,11 +16,11 @@
         <!-- 按钮区域 -->
         <NavButtons
           :is-first="currentIndex === 0"
-          :is-last="false"
-          :prev-disabled="currentIndex === 0"
+          :is-last="currentIndex === questions.length - 1"
+          :prev-disabled="false"
           :next-disabled="!canNext"
           @prev="prevQuestion"
-          @next="handleNextOrComplete"
+          @next="nextQuestion"
           @complete="completeQuestionnaire"
         />
       </div>
@@ -31,25 +31,45 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
-import { getQuestionnaire, submitQuestionnaire } from '@/api'
-
-const router = useRouter()
+import { getSubQuestionnaire, submitQuestionnaire } from '@/api'
 import Header from './components/Header.vue'
 import EmailVerify from './components/EmailVerify.vue'
 import BaseInfoCard from './components/BaseInfoCard.vue'
 import NavButtons from './components/NavButtons.vue'
+
+const route = useRoute()
+const router = useRouter()
 const userStore = useUserStore()
+
+const props = defineProps({
+  type: {
+    type: String,
+    required: true
+  }
+})
+
 const loading = ref(true)
 const questions = ref([])
 const currentIndex = ref(0)
 const answers = ref({})
 const questionnaireDone = ref(false)
+
+const pageTitle = computed(() => {
+  return props.type === 'date' ? '约会问卷' : '搭子问卷'
+})
+
 onMounted(async () => {
+  // 验证类型是否有效
+  if (!['date', 'buddy'].includes(props.type)) {
+    router.replace('/questionnaire')
+    return
+  }
+
   try {
-    const res = await getQuestionnaire()
+    const res = await getSubQuestionnaire(props.type)
     questions.value = res.data.questions
 
     questions.value.forEach(q => {
@@ -68,14 +88,42 @@ onMounted(async () => {
       }
     })
 
-    if (userStore.questionnaire) {
-      answers.value = { ...answers.value, ...userStore.questionnaire }
+    // 恢复已保存的答案
+    const savedAnswers = props.type === 'date' ? userStore.subQuestionnaire_date : userStore.subQuestionnaire_buddy
+    if (savedAnswers) {
+      answers.value = { ...answers.value, ...savedAnswers }
     }
   } catch (error) {
     console.error('加载问卷失败', error)
   } finally {
     loading.value = false
   }
+
+  window.addEventListener('keydown', handleKeyDown)
+})
+
+const handleKeyDown = (event) => {
+  if (questionnaireDone.value || loading.value || !currentQuestion.value) {
+    return
+  }
+
+  if (event.key === 'ArrowLeft') {
+    event.preventDefault()
+    prevQuestion()
+  } else if (event.key === 'ArrowRight') {
+    event.preventDefault()
+    if (canNext.value) {
+      if (currentIndex.value === questions.value.length - 1) {
+        completeQuestionnaire()
+      } else {
+        nextQuestion()
+      }
+    }
+  }
+}
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyDown)
 })
 
 const currentQuestion = computed(() => {
@@ -84,7 +132,7 @@ const currentQuestion = computed(() => {
 
 const canNext = computed(() => {
   const q = currentQuestion.value
-  if (!q.required) return true
+  if (!q || !q.required) return true
 
   const answer = answers.value[q.key]
   if (q.type === 'checkbox') {
@@ -102,24 +150,18 @@ const canNext = computed(() => {
   return !!answer
 })
 
-
 const nextQuestion = () => {
   if (currentIndex.value < questions.value.length - 1) {
     currentIndex.value++
   }
 }
 
-const handleNextOrComplete = () => {
-  if (currentIndex.value < questions.value.length - 1) {
-    nextQuestion()
-  } else {
-    completeQuestionnaire()
-  }
-}
-
 const prevQuestion = () => {
   if (currentIndex.value > 0) {
     currentIndex.value--
+  } else {
+    // 第一题时返回基础问卷
+    router.push('/questionnaire')
   }
 }
 
@@ -158,30 +200,22 @@ const completeQuestionnaire = async () => {
     return
   }
 
-  // 保存基础问卷答案
-  userStore.questionnaire = { ...answers.value }
+  // 保存答案到store
+  userStore.setSubQuestionnaire(props.type, { ...answers.value })
 
-  // 根据用户选择的寻找目的跳转到对应子问卷
-  const lookingFor = answers.value.lookingFor
-  if (lookingFor === 'date' || lookingFor === 'buddy') {
-    // 先提交基础问卷
-    try {
-      await submitQuestionnaire({
-        type: 'base',
-        answers: answers.value
-      })
-      // 跳转到对应的子问卷
-      router.push(`/questionnaire/${lookingFor}`)
-    } catch (error) {
-      console.error('提交基础问卷失败', error)
-      alert('提交失败，请重试')
-    }
-  } else {
-    // 如果没有选择或选择无效，显示完成页面
+  // 提交问卷
+  try {
+    await submitQuestionnaire({
+      type: props.type,
+      answers: answers.value
+    })
+    // 显示邮箱验证界面
     questionnaireDone.value = true
+  } catch (error) {
+    console.error('提交问卷失败', error)
+    alert('提交失败，请重试')
   }
 }
-
 </script>
 
 <style lang="scss" scoped>
@@ -200,18 +234,6 @@ const completeQuestionnaire = async () => {
   overflow-x: hidden;
 }
 
-/* 背景 */
-.page-bg {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: inherit;
-  z-index: 0;
-  pointer-events: none;
-}
-
 /* 内容容器 */
 .content-wrapper {
   position: relative;
@@ -221,109 +243,31 @@ const completeQuestionnaire = async () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  overflow-y: auto;
-  background: #fff;
 }
 
-/* 问卷卡片容器 */
+/* 问题卡片容器 */
 .question-card-container {
   width: 100%;
-  max-width: 580px;
+  max-width: 600px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
 /* 加载状态 */
 .loading-state {
-  font-size: 20px;
-  color: white;
-  font-weight: 700;
-  text-align: center;
-  padding: 40px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #666;
+  font-size: 16px;
 }
 
-/* 动画 */
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .header-bar {
-    gap: 12px;
-
-    .back-btn {
-      flex-shrink: 0;
-    }
-
-    .page-title {
-      font-size: 20px;
-      flex: 1;
-    }
-
-    .progress-text {
-      font-size: 12px;
-      min-width: 50px;
-      text-align: right;
-    }
-  }
-
+/* 响应式适配 */
+@media (max-width: 640px) {
   .content-wrapper {
-    padding: 16px;
-  }
-
-  .question-card-container {
-    gap: 16px;
-  }
-
-  .email-verify-card {
-    padding: 20px;
-  }
-}
-
-@media (max-width: 480px) {
-  .header-bar {
-    padding: 12px 16px;
-
-    .page-title {
-      font-size: 18px;
-    }
-  }
-
-  .question-card,
-  .email-verify-card {
-    padding: 16px;
-    border-radius: 12px;
-  }
-
-  .question-card-container {
-    gap: 12px;
-  }
-
-  .email-verify-card {
-    .complete-header {
-      margin-bottom: 24px;
-
-      h2 {
-        font-size: 20px;
-        margin-bottom: 4px;
-      }
-
-      p {
-        font-size: 12px;
-      }
-    }
+    padding: 24px 16px;
   }
 }
 </style>

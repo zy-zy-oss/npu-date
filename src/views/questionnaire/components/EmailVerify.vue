@@ -47,12 +47,20 @@
 </template>
 <script setup>
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/store/user'
+import { submitQuestionnaire } from '@/api'
+
+const router = useRouter()
+const userStore = useUserStore()
+
 const emailLocalPart = ref('')
-const emailDomain = ref('')
+const emailDomain = ref('nwpu.edu.cn')
 const emailVerifyCode = ref('')
 const emailVerifyStep = ref('input') // 'input' 或 'verify'
 const emailSending = ref(false)
 const emailCountdown = ref(60)
+const submitting = ref(false)
 let countdownInterval = null
 
 const emailInput = computed(() => {
@@ -109,24 +117,21 @@ const confirmEmailVerify = async () => {
     return
   }
   
-  // 验证码验证成功，提交问卷
+  // 验证码验证成功
   submitting.value = true
   try {
-    const res = await submitApi(answers.value)
-    if (res.code === 200) {
-      userStore.setQuestionnaire(answers.value)
-      clearInterval(countdownInterval)
-      // 跳转到完成页面
-      router.push({
-        path: '/questionnaire-complete',
-        query: { email: emailInput.value }
-      })
-    } else {
-      alert(res.message || '提交失败')
-    }
+    // 模拟验证过程
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    // 跳转到完成页面
+    clearInterval(countdownInterval)
+    router.push({
+      path: '/questionnaire-complete',
+      query: { email: emailInput.value }
+    })
   } catch (error) {
-    alert('提交失败，请稍后重试')
-    console.error('提交问卷错误', error)
+    alert('验证失败，请稍后重试')
+    console.error('验证错误', error)
   } finally {
     submitting.value = false
   }

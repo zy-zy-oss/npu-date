@@ -106,7 +106,8 @@ export const mockQuestionnaire = {
       required: true,
       options: [
         { label: '男', value: 'male' },
-        { label: '女', value: 'female' }
+        { label: '女', value: 'female' },
+        { label: '不限', value: 'any' }
       ]
     },
     {
@@ -123,57 +124,41 @@ export const mockQuestionnaire = {
     },
     {
       id: 3,
-      type: 'datetime',
-      title: '出生日期时间',
-      key: 'birthday',
+      type: 'range',
+      title: '年龄范围',
+      key: 'ageRange',
       required: true,
-      startYear: 1995,
-      endYear: 2006,
-      showPreview: true
+      min: 18,
+      max: 45,
+      step: 1,
+      minGap: 1,
+      unit: '岁'
     },
     {
       id: 4,
       type: 'radio',
-      title: '年级',
-      key: 'grade',
+      title: '身份',
+      key: 'identity',
       required: true,
       options: [
-        { label: '2020级', value: '2020' },
-        { label: '2021级', value: '2021' },
-        { label: '2022级', value: '2022' },
-        { label: '2023级', value: '2023' },
-        { label: '2024级', value: '2024' }
+        { label: '在读本科', value: 'undergraduate' },
+        { label: '在读硕士', value: 'master' },
+        { label: '在读博士', value: 'doctor' },
+        { label: '教职工', value: 'staff' },
+        { label: '校友', value: 'alumni' },
+        { label: '保密', value: 'secret' }
       ]
     },
     {
       id: 5,
-      type: 'radio',
-      title: '专业',
-      key: 'major',
-      required: true,
-      options: [
-        { label: '计算机科学与技术', value: '计算机科学与技术' },
-        { label: '软件工程', value: '软件工程' },
-        { label: '电子信息工程', value: '电子信息工程' },
-        { label: '机械工程', value: '机械工程' },
-        { label: '自动化', value: '自动化' },
-        { label: '材料科学与工程', value: '材料科学与工程' },
-        { label: '飞行器设计与工程', value: '飞行器设计与工程' },
-        { label: '信息管理与信息系统', value: '信息管理与信息系统' },
-        { label: '工商管理', value: '工商管理' },
-        { label: '其他', value: '其他' }
-      ]
-    },
-    {
-      id: 6,
       type: 'region',
-      title: '家乡所在地',
-      key: 'hometown',
+      title: '现居地',
+      key: 'currentLocation',
       required: true,
       showPreview: true
     },
     {
-      id: 7,
+      id: 6,
       type: 'radio',
       title: '所在校区',
       key: 'location',
@@ -181,61 +166,11 @@ export const mockQuestionnaire = {
       options: [
         { label: '友谊校区', value: '友谊校区' },
         { label: '长安校区', value: '长安校区' },
-        { label: '其他', value: '其他' }
+        { label: '不限', value: 'any' }
       ]
     },
     {
-      id: 8,
-      type: 'slider',
-      title: '身高(cm)',
-      key: 'height',
-      required: false,
-      min: 150,
-      max: 200,
-      step: 1,
-      defaultValue: 170
-    },
-    {
-      id: 9,
-      type: 'checkbox',
-      title: '兴趣爱好',
-      key: 'hobbies',
-      required: false,
-      options: [
-        { label: '篮球', value: '篮球' },
-        { label: '足球', value: '足球' },
-        { label: '羽毛球', value: '羽毛球' },
-        { label: '跑步', value: '跑步' },
-        { label: '健身', value: '健身' },
-        { label: '游泳', value: '游泳' },
-        { label: '摄影', value: '摄影' },
-        { label: '旅行', value: '旅行' },
-        { label: '音乐', value: '音乐' },
-        { label: '电影', value: '电影' },
-        { label: '读书', value: '读书' },
-        { label: '绘画', value: '绘画' },
-        { label: '游戏', value: '游戏' },
-        { label: '美食', value: '美食' },
-        { label: '编程', value: '编程' },
-        { label: '其他', value: '其他' }
-      ]
-    },
-    {
-      id: 10,
-      type: 'radio',
-      title: '性格类型',
-      key: 'personality',
-      required: false,
-      options: [
-        { label: '开朗外向', value: '开朗外向' },
-        { label: '成熟稳重', value: '成熟稳重' },
-        { label: '文静内敛', value: '文静内敛' },
-        { label: '幽默风趣', value: '幽默风趣' },
-        { label: '温柔细腻', value: '温柔细腻' }
-      ]
-    },
-    {
-      id: 11,
+      id: 7,
       type: 'textarea',
       title: '自我介绍',
       key: 'bio',
@@ -244,7 +179,7 @@ export const mockQuestionnaire = {
       maxLength: 200
     },
     {
-      id: 12,
+      id: 8,
       type: 'radio',
       title: '你希望在这里寻找？',
       key: 'lookingFor',
