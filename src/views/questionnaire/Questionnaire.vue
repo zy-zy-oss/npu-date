@@ -44,24 +44,28 @@ const loading = ref(true)
 const questions = ref([])
 const currentIndex = ref(0)
 const answers = ref({})
-const questionnaireDone = ref(false) // 问卷是否已完成
+const questionnaireDone = ref(false)
 onMounted(async () => {
   try {
     const res = await getQuestionnaire()
     questions.value = res.data.questions
 
-    // 初始化答案
     questions.value.forEach(q => {
       if (q.type === 'checkbox') {
         answers.value[q.key] = []
       } else if (q.type === 'slider') {
         answers.value[q.key] = q.defaultValue || q.min
+      } else if (q.type === 'range') {
+        answers.value[q.key] = q.defaultValue || { min: q.min, max: q.max }
+      } else if (q.type === 'region') {
+        answers.value[q.key] = { province: '', city: '', district: '' }
+      } else if (q.type === 'date') {
+        answers.value[q.key] = ''
       } else {
         answers.value[q.key] = ''
       }
     })
 
-    // 如果之前有保存的问卷，加载它
     if (userStore.questionnaire) {
       answers.value = { ...answers.value, ...userStore.questionnaire }
     }
@@ -84,6 +88,18 @@ const canNext = computed(() => {
   if (q.type === 'checkbox') {
     return answer && answer.length > 0
   }
+  if (q.type === 'range') {
+    return answer && (answer.min !== undefined || answer.max !== undefined)
+  }
+  if (q.type === 'region') {
+    if (q.requireDistrict !== false) {
+      return answer && answer.province && answer.city && answer.district
+    }
+    return answer && answer.province && answer.city
+  }
+  if (q.type === 'date') {
+    return answer && answer !== ''
+  }
   return !!answer
 })
 
@@ -100,28 +116,35 @@ const prevQuestion = () => {
   }
 }
 
-// 处理答案更新
 const handleAnswerUpdate = (value) => {
   answers.value[currentQuestion.value.key] = value
 }
 
-// 单选自动跳转到下一题
 const autoNextOnSingleChoice = () => {
-  // 延迟100ms后跳转，提供用户反馈
   setTimeout(() => {
     nextQuestion()
   }, 100)
 }
 
-// 完成问卷，进入邮箱验证阶段
 const completeQuestionnaire = () => {
-  // 校验所有必填项
   const allAnswered = questions.value
     .filter(q => q.required)
     .every(q => {
       const answer = answers.value[q.key]
       if (q.type === 'checkbox') {
         return answer && answer.length > 0
+      }
+      if (q.type === 'range') {
+        return answer && (answer.min !== undefined || answer.max !== undefined)
+      }
+      if (q.type === 'region') {
+        if (q.requireDistrict !== false) {
+          return answer && answer.province && answer.city && answer.district
+        }
+        return answer && answer.province && answer.city
+      }
+      if (q.type === 'date') {
+        return answer && answer !== ''
       }
       return !!answer
     })
@@ -131,7 +154,6 @@ const completeQuestionnaire = () => {
     return
   }
 
-  // 问卷校验通过，切换到邮箱输入界面
   questionnaireDone.value = true
 }
 
