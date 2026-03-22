@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useUserStore } from '@/store/user'
 
 const routes = [
   {
@@ -11,26 +12,58 @@ const routes = [
     path: '/questionnaire',
     name: 'Questionnaire',
     component: () => import('@/views/questionnaire/Questionnaire.vue'),
-    meta: { title: '基础问卷' }
+    meta: { title: '基础问卷' },
+    beforeEnter: (to, from, next) => {
+      const userStore = useUserStore()
+      if (!userStore.isLoggedIn) {
+        next('/')
+      } else {
+        next()
+      }
+    }
   },
   {
     path: '/questionnaire/:type',
     name: 'SubQuestionnaire',
     component: () => import('@/views/questionnaire/SubQuestionnaire.vue'),
     meta: { title: '详细问卷' },
-    props: true
+    props: true,
+    beforeEnter: (to, from, next) => {
+      const userStore = useUserStore()
+      if (!userStore.isLoggedIn) {
+        next('/')
+      } else {
+        next()
+      }
+    }
   },
   {
     path: '/questionnaire-complete',
     name: 'QuestionnaireComplete',
     component: () => import('@/views/QuestionnaireComplete.vue'),
-    meta: { title: '问卷完成' }
+    meta: { title: '问卷完成' },
+    beforeEnter: (to, from, next) => {
+      const userStore = useUserStore()
+      if (!userStore.isLoggedIn) {
+        next('/')
+      } else {
+        next()
+      }
+    }
   },
   {
     path: '/result',
     name: 'Result',
     component: () => import('@/views/Result.vue'),
-    meta: { title: '我的匹配' }
+    meta: { title: '我的匹配' },
+    beforeEnter: (to, from, next) => {
+      const userStore = useUserStore()
+      if (!userStore.isLoggedIn) {
+        next('/')
+      } else {
+        next()
+      }
+    }
   }
 ]
 

@@ -1,6 +1,9 @@
 // Mock数据配置
 export const MOCK_DELAY = 300 // 模拟网络延迟(ms)
 
+// 开发环境预定义验证码
+export const MOCK_VERIFICATION_CODE = '123456'
+
 // 用户数据
 export const mockUsers = [
   {
