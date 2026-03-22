@@ -29,7 +29,8 @@
         
         <!-- 开始按钮 -->
         <div class="button-container">
-          <button class="start-btn" @click="handleStart">开始</button>
+          <button class="start-btn" @click="handleStart">开始测试</button>
+          <button class="login-btn" @click="handleLogin">已测试，去登录</button>
         </div>
         
         <!-- 倒计时 -->
@@ -53,30 +54,33 @@
           
           <div class="info-card">
             <h3>多校参与</h3>
-            <p>立足西安，辐射西北。涵盖陕西及周边省份 22 所高校，包括山西、河南、湖北、四川、重庆等。</p>
+            <p>立足西安，辐射西北。涵盖陕西及周边省份 22 所高校。</p>
           </div>
           
           
           <div class="info-card">
             <h3>真实连接</h3>
-            <p>不定期举办线下联动活动，定期组织同城线下活动，让匹配到的伙伴有机会面对面交流</p>
+            <p>不定期组织同城线下活动，让匹配到的伙伴有机会面对面交流。</p>
           </div>
             
           <div class="info-card">
             <h3>隐私安全</h3>
-            <p>严格保护用户隐私，所有个人信息加密存储</p>
+            <p>严格保护用户隐私，所有个人信息加密存储。</p>
           </div>
         </div>
         
         <div class="provinces-section">
           <h3>参与高校所在省份</h3>
           <div class="provinces-list">
-            <span class="province-tag highlight">陕西</span>
-            <span class="province-tag">山西</span>
-            <span class="province-tag">河南</span>
-            <span class="province-tag">湖北</span>
-            <span class="province-tag">四川</span>
-            <span class="province-tag">重庆</span>
+            <span class="province-tag highlight">陕西省</span>
+            <span class="province-tag">山西省</span>
+            <span class="province-tag">内蒙古自治区</span>
+            <span class="province-tag">宁夏回族自治区</span>
+            <span class="province-tag">甘肃省</span>
+            <span class="province-tag">四川省</span>
+            <span class="province-tag">重庆市</span>
+            <span class="province-tag">湖北省</span>
+            <span class="province-tag">河南省</span>
           </div>
         </div>      
         
@@ -93,15 +97,26 @@
       </div>
     </div>
   </div>
+  
+  <!-- 登录弹窗 -->
+  <LoginModal 
+    :visible="showLoginModal"
+    @close="handleCloseLoginModal"
+    @login-success="handleLoginSuccess"
+  />
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
+import LoginModal from '@/components/LoginModal.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
+
+// 登录弹窗状态
+const showLoginModal = ref(false)
 
 // 动态学校数量
 const schoolCount = ref(1)
@@ -214,6 +229,22 @@ onUnmounted(() => {
 
 const handleStart = () => {
   router.push('/questionnaire')
+}
+
+const handleLogin = () => {
+  // 打开登录弹窗
+  showLoginModal.value = true
+}
+
+const handleLoginSuccess = (userInfo) => {
+  // 登录成功后跳转到result页面
+  userStore.setUserInfo(userInfo)
+  userStore.setToken('mock-token') // 模拟token
+  router.push('/result')
+}
+
+const handleCloseLoginModal = () => {
+  showLoginModal.value = false
 }
 </script>
 
@@ -404,17 +435,14 @@ const handleStart = () => {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 16px;
   animation: fadeInUp 0.8s ease-out 0.2s both;
   
-  .start-btn {
+  .start-btn,
+  .login-btn {
     padding: 12px 48px;
     font-size: 16px;
     font-weight: 500;
-    color: #1a1a1a;
-    background: #fff;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    border: 1px solid #e0e0e0;
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -422,6 +450,12 @@ const handleStart = () => {
     letter-spacing: 0;
     position: relative;
     overflow: hidden;
+    width: 160px;
+    white-space: nowrap;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     
     &::before {
       content: '';
@@ -435,10 +469,8 @@ const handleStart = () => {
     }
     
     &:hover {
-      background: #fff;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
       transform: none;
-      border-color: #d0d0d0;
       
       &::before {
         left: 100%;
@@ -448,6 +480,32 @@ const handleStart = () => {
     &:active {
       transform: none;
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    }
+  }
+  
+  .start-btn {
+    color: #fff;
+    background: #000;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 1px solid #000;
+
+    &:hover {
+      background: #333;
+      border-color: #333;
+    }
+  }
+
+  .login-btn {
+    color: #000;
+    background: #fff;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 1px solid #e0e0e0;
+
+    &:hover {
+      background: #f5f5f5;
+      border-color: #d0d0d0;
     }
   }
 }
@@ -577,11 +635,11 @@ const handleStart = () => {
   }
   
   &.highlight {
-    background: #1890ff;
+    background: #000000af;
     color: #fff;
     
     &:hover {
-      background: #40a9ff;
+      background: #000;
     }
   }
 }
@@ -719,7 +777,11 @@ const handleStart = () => {
   }
   
   .button-container {
-    .start-btn {
+    flex-direction: column;
+    gap: 12px;
+    
+    .start-btn,
+    .login-btn {
       padding: 12px 40px;
       font-size: 16px;
     }
@@ -800,7 +862,11 @@ const handleStart = () => {
   }
   
   .button-container {
-    .start-btn {
+    flex-direction: column;
+    gap: 10px;
+    
+    .start-btn,
+    .login-btn {
       padding: 11px 36px;
       font-size: 14px;
     }

@@ -25,6 +25,12 @@ const routes = [
     name: 'QuestionnaireComplete',
     component: () => import('@/views/QuestionnaireComplete.vue'),
     meta: { title: '问卷完成' }
+  },
+  {
+    path: '/result',
+    name: 'Result',
+    component: () => import('@/views/Result.vue'),
+    meta: { title: '我的匹配' }
   }
 ]
 

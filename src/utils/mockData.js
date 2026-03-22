@@ -6,6 +6,7 @@ export const mockUsers = [
   {
     id: 1,
     email: 'test@nwpu.edu.cn',
+    password: '123456',
     name: '张三',
     gender: 'male',
     grade: '2022',
@@ -202,13 +203,13 @@ export const mockQuestionnaire_1 = {
       title: '期望对方身高范围(cm)',
       key: 'heightRange',
       required: false,
-      min: 150,
-      max: 200,
+      min: 120,
+      max: 220,
       step: 1,
       minGap: 5,
       unit: 'cm',
-      defaultMin: 160,
-      defaultMax: 180
+      defaultMin: 155,
+      defaultMax: 185
     },
     {
       id: 2,
@@ -217,12 +218,12 @@ export const mockQuestionnaire_1 = {
       key: 'ageRange',
       required: false,
       min: 18,
-      max: 30,
+      max: 35,
       step: 1,
       minGap: 1,
       unit: '岁',
-      defaultMin: 20,
-      defaultMax: 25
+      defaultMin: 19,
+      defaultMax: 29
     },
     {
       id: 3,
