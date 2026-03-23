@@ -46,56 +46,75 @@
     
     <!-- 滑块 -->
     <div v-if="question.type === 'slider'" class="slider-container">
-      <input 
-        type="range"
-        :value="modelValue"
-        :min="question.min"
-        :max="question.max"
-        :step="question.step"
-        class="range-slider"
-        @input="$emit('update:modelValue', Number($event.target.value))"
-      />
+      <div class="slider-track-wrapper">
+        <div class="slider-track">
+          <div class="slider-fill" :style="sliderFillStyle"></div>
+          <div 
+            v-for="n in 11" 
+            :key="n-1"
+            class="slider-node"
+            :class="{ 'slider-node-active': modelValue === n - 1, 'slider-node-selected': modelValue >= n - 1 }"
+            :style="{ left: `${(n - 1) * 10}%` }"
+            @click="selectSliderValue(n - 1)"
+          >
+            <span v-if="modelValue === n - 1" class="slider-node-value">{{ n - 1 }}</span>
+          </div>
+        </div>
+        <div class="slider-labels">
+          <span class="slider-label">0分</span>
+          <span class="slider-label">10分</span>
+        </div>
+      </div>
       <div class="slider-value">{{ modelValue }}</div>
     </div>
     
-    <!-- 双滑块（范围选择） -->
-    <div v-if="question.type === 'range'" class="range-slider-container">
-      <div class="range-slider-row">
-        <!-- 左侧：系统默认最小值 -->
-        <span class="range-side-label">{{ question.min }}</span>
-        
-        <!-- 中间：滑块轨道 -->
-        <div class="range-track-wrapper">
-          <div class="range-track">
-            <div class="range-fill" :style="rangeFillStyle"></div>
-            <input 
-              type="range"
-              :value="rangeValue.min"
-              :min="question.min"
-              :max="question.max"
-              :step="question.step || 1"
-              class="range-input range-min"
-              @input="handleRangeMinChange($event.target.value)"
-            />
-            <input 
-              type="range"
-              :value="rangeValue.max"
-              :min="question.min"
-              :max="question.max"
-              :step="question.step || 1"
-              class="range-input range-max"
-              @input="handleRangeMaxChange($event.target.value)"
-            />
-          </div>
-          <!-- 用户选择值（跟随滑块） -->
-          <div class="range-values-row">
-            <span class="range-value-label" :style="minValueStyle">{{ rangeValue.min }}</span>
-            <span class="range-value-label" :style="maxValueStyle">{{ rangeValue.max }}</span>
+    <!-- 双列选择器（范围选择） -->
+    <div v-if="question.type === 'range'" class="range-picker-container">
+      <div class="wheel-picker">
+        <!-- 下限列 -->
+        <div class="wheel-column">
+          <div class="wheel-column-label">下限</div>
+          <div 
+            class="wheel-display"
+            @wheel="handleRangeWheel('min', $event)"
+            @touchstart="handleRangeTouchStart('min', $event)"
+            @touchmove="handleRangeTouchMove('min', $event)"
+            @touchend="handleRangeTouchEnd('min', $event)"
+          >
+            <div 
+              v-for="(val, index) in getRangeWheelDisplayItems('min')" 
+              :key="index"
+              :class="['wheel-display-item', { 'wheel-display-item-selected': val === rangeValue.min }]"
+              @click="selectRangeWheelItem('min', val)"
+            >
+              {{ val }}
+            </div>
           </div>
         </div>
-        
-        <!-- 右侧：系统默认最大值 -->
-        <span class="range-side-label">{{ question.max }}</span>
+
+        <!-- 上限列 -->
+        <div class="wheel-column">
+          <div class="wheel-column-label">上限</div>
+          <div 
+            class="wheel-display"
+            @wheel="handleRangeWheel('max', $event)"
+            @touchstart="handleRangeTouchStart('max', $event)"
+            @touchmove="handleRangeTouchMove('max', $event)"
+            @touchend="handleRangeTouchEnd('max', $event)"
+          >
+            <div 
+              v-for="(val, index) in getRangeWheelDisplayItems('max')" 
+              :key="index"
+              :class="['wheel-display-item', { 'wheel-display-item-selected': val === rangeValue.max }]"
+              @click="selectRangeWheelItem('max', val)"
+            >
+              {{ val }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div v-if="rangeDisplay" class="range-preview">
+        {{ rangeDisplay }}
       </div>
     </div>
     
@@ -108,6 +127,9 @@
           <div 
             class="wheel-display"
             @wheel="handleTimeWheel('year', $event)"
+            @touchstart="handleTimeTouchStart('year', $event)"
+            @touchmove="handleTimeTouchMove('year', $event)"
+            @touchend="handleTimeTouchEnd('year', $event)"
           >
             <div 
               v-for="(year, index) in getTimeWheelDisplayItems('year')" 
@@ -126,6 +148,9 @@
           <div 
             class="wheel-display"
             @wheel="handleTimeWheel('month', $event)"
+            @touchstart="handleTimeTouchStart('month', $event)"
+            @touchmove="handleTimeTouchMove('month', $event)"
+            @touchend="handleTimeTouchEnd('month', $event)"
           >
             <div 
               v-for="(month, index) in getTimeWheelDisplayItems('month')" 
@@ -144,6 +169,9 @@
           <div 
             class="wheel-display"
             @wheel="handleTimeWheel('day', $event)"
+            @touchstart="handleTimeTouchStart('day', $event)"
+            @touchmove="handleTimeTouchMove('day', $event)"
+            @touchend="handleTimeTouchEnd('day', $event)"
           >
             <div 
               v-for="(day, index) in getTimeWheelDisplayItems('day')" 
@@ -162,6 +190,9 @@
           <div 
             class="wheel-display"
             @wheel="handleTimeWheel('hour', $event)"
+            @touchstart="handleTimeTouchStart('hour', $event)"
+            @touchmove="handleTimeTouchMove('hour', $event)"
+            @touchend="handleTimeTouchEnd('hour', $event)"
           >
             <div 
               v-for="(hour, index) in getTimeWheelDisplayItems('hour')" 
@@ -235,6 +266,9 @@
           <div 
             class="wheel-display"
             @wheel="handleDateWheel('year', $event)"
+            @touchstart="handleDateTouchStart('year', $event)"
+            @touchmove="handleDateTouchMove('year', $event)"
+            @touchend="handleDateTouchEnd('year', $event)"
           >
             <div 
               v-for="(year, index) in getDateWheelDisplayItems('year')" 
@@ -253,6 +287,9 @@
           <div 
             class="wheel-display"
             @wheel="handleDateWheel('month', $event)"
+            @touchstart="handleDateTouchStart('month', $event)"
+            @touchmove="handleDateTouchMove('month', $event)"
+            @touchend="handleDateTouchEnd('month', $event)"
           >
             <div 
               v-for="(month, index) in getDateWheelDisplayItems('month')" 
@@ -271,6 +308,9 @@
           <div 
             class="wheel-display"
             @wheel="handleDateWheel('day', $event)"
+            @touchstart="handleDateTouchStart('day', $event)"
+            @touchmove="handleDateTouchMove('day', $event)"
+            @touchend="handleDateTouchEnd('day', $event)"
           >
             <div 
               v-for="(day, index) in getDateWheelDisplayItems('day')" 
@@ -291,7 +331,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, nextTick, onMounted } from 'vue'
 
 const props = defineProps({
   question: {
@@ -317,71 +357,194 @@ const handleCheckboxChange = (value) => {
   emit('update:modelValue', newValue)
 }
 
-// ========== 双滑块相关 ==========
+// ========== 双列选择器相关 ==========
+
+const minScrollRef = ref(null)
+const maxScrollRef = ref(null)
+const ITEM_HEIGHT = 40
+const VISIBLE_ITEMS = 5
+
+const rangeOptions = computed(() => {
+  const min = props.question.min ?? 18
+  const center = props.question.center ?? 25
+  const options = []
+  for (let i = min; i <= center; i++) {
+    options.push(i)
+  }
+  return options
+})
+
 const rangeValue = computed(() => {
   const val = props.modelValue
+  const defaultMin = props.question.min ?? 18
+  const defaultMax = props.question.max ?? 35
   if (val && (val.min !== undefined || val.max !== undefined)) {
     return {
-      min: val.min ?? props.question.min,
-      max: val.max ?? props.question.max
+      min: val.min ?? defaultMin,
+      max: val.max ?? defaultMax
     }
   }
   return {
-    min: props.question.min,
-    max: props.question.max
+    min: defaultMin,
+    max: defaultMax
   }
 })
 
-const rangeFillStyle = computed(() => {
-  const min = props.question.min
-  const max = props.question.max
-  const left = ((rangeValue.value.min - min) / (max - min)) * 100
-  const right = ((rangeValue.value.max - min) / (max - min)) * 100
-  return {
-    left: `${left}%`,
-    width: `${right - left}%`
-  }
+const rangeDisplay = computed(() => {
+  const val = rangeValue.value
+  return `年龄范围：${val.min} - ${val.max}`
 })
 
-// 用户选择值的位置样式（跟随滑块）
-const minValueStyle = computed(() => {
-  const min = props.question.min
-  const max = props.question.max
-  const left = ((rangeValue.value.min - min) / (max - min)) * 100
-  return {
-    left: `${left}%`,
-    transform: 'translateX(-50%)'
+const getRangeWheelDisplayItems = (type) => {
+  const options = rangeOptions.value
+  const currentValue = type === 'min' ? rangeValue.value.min : rangeValue.value.max
+  const displayItems = []
+  
+  for (let i = -2; i <= 2; i++) {
+    let value = currentValue + i
+    
+    if (options.includes(value)) {
+      displayItems.push(value)
+    }
   }
-})
-
-const maxValueStyle = computed(() => {
-  const min = props.question.min
-  const max = props.question.max
-  const left = ((rangeValue.value.max - min) / (max - min)) * 100
-  return {
-    left: `${left}%`,
-    transform: 'translateX(-50%)'
+  
+  if (displayItems.length < 5) {
+    while (displayItems.length < 5) {
+      const first = displayItems[0]
+      const last = displayItems[displayItems.length - 1]
+      const idx = options.indexOf(first)
+      if (idx > 0) {
+        displayItems.unshift(options[idx - 1])
+      } else if (last !== undefined) {
+        const lastIdx = options.indexOf(last)
+        if (lastIdx < options.length - 1) {
+          displayItems.push(options[lastIdx + 1])
+        }
+      } else {
+        break
+      }
+    }
   }
-})
-
-const handleRangeMinChange = (value) => {
-  const numValue = Number(value)
-  const newMax = rangeValue.value.max
-  const newValue = {
-    min: Math.min(numValue, newMax),
-    max: newMax
-  }
-  emit('update:modelValue', newValue)
+  
+  return displayItems
 }
 
-const handleRangeMaxChange = (value) => {
-  const numValue = Number(value)
-  const newMin = rangeValue.value.min
-  const newValue = {
-    min: newMin,
-    max: Math.max(numValue, newMin)
+const scrollToValue = (type, value) => {
+  nextTick(() => {
+    const options = rangeOptions.value
+    const index = options.indexOf(value)
+    if (index === -1) return
+
+    const scrollContainer = type === 'min' ? minScrollRef.value : maxScrollRef.value
+    if (!scrollContainer) return
+
+    const scrollTop = index * ITEM_HEIGHT
+    scrollContainer.scrollTo({
+      top: scrollTop,
+      behavior: 'instant'
+    })
+  })
+}
+
+const handleRangeWheel = (type, event) => {
+  event.preventDefault()
+  const delta = event.deltaY
+  if (Math.abs(delta) < 10) return
+
+  const direction = delta > 0 ? 1 : -1
+  const options = rangeOptions.value
+  const currentValue = type === 'min' ? rangeValue.value.min : rangeValue.value.max
+  const currentIndex = options.indexOf(currentValue)
+  const newIndex = Math.max(0, Math.min(options.length - 1, currentIndex + direction))
+
+  if (newIndex !== currentIndex) {
+    selectRangeWheelItem(type, options[newIndex])
   }
-  emit('update:modelValue', newValue)
+}
+
+const rangeTouchState = {
+  startY: 0,
+  startValue: 0,
+  lastY: 0,
+  velocity: 0
+}
+
+const handleRangeTouchStart = (type, event) => {
+  event.preventDefault()
+  const touch = event.touches[0]
+  rangeTouchState.startY = touch.clientY
+  rangeTouchState.lastY = touch.clientY
+  rangeTouchState.startValue = type === 'min' ? rangeValue.value.min : rangeValue.value.max
+  rangeTouchState.velocity = 0
+}
+
+const handleRangeTouchMove = (type, event) => {
+  event.preventDefault()
+  const touch = event.touches[0]
+  const deltaY = touch.clientY - rangeTouchState.lastY
+  rangeTouchState.velocity = deltaY
+  rangeTouchState.lastY = touch.clientY
+}
+
+const handleRangeTouchEnd = (type, event) => {
+  const options = rangeOptions.value
+  const currentValue = rangeTouchState.startValue
+  const currentIndex = options.indexOf(currentValue)
+
+  const velocity = rangeTouchState.velocity
+  let direction = 0
+  if (Math.abs(velocity) > 5) {
+    direction = velocity > 0 ? 1 : -1
+  }
+
+  const newIndex = Math.max(0, Math.min(options.length - 1, currentIndex + direction))
+
+  if (newIndex !== currentIndex) {
+    selectRangeWheelItem(type, options[newIndex])
+  }
+}
+
+const selectRangeWheelItem = (type, value) => {
+  const currentMin = rangeValue.value.min
+  const currentMax = rangeValue.value.max
+
+  if (type === 'min') {
+    if (value <= currentMax) {
+      emit('update:modelValue', { min: value, max: currentMax })
+      scrollToValue('min', value)
+    }
+  } else {
+    if (value >= currentMin) {
+      emit('update:modelValue', { min: currentMin, max: value })
+      scrollToValue('max', value)
+    }
+  }
+}
+
+watch(() => rangeValue.value.min, (newVal) => {
+  scrollToValue('min', newVal)
+})
+
+watch(() => rangeValue.value.max, (newVal) => {
+  scrollToValue('max', newVal)
+})
+
+onMounted(() => {
+  nextTick(() => {
+    scrollToValue('min', rangeValue.value.min)
+    scrollToValue('max', rangeValue.value.max)
+  })
+})
+
+// ========== 滑块选择器相关 ==========
+const sliderFillStyle = computed(() => {
+  return {
+    width: `${(modelValue / 10) * 100}%`
+  }
+})
+
+const selectSliderValue = (value) => {
+  emit('update:modelValue', value)
 }
 
 // ========== 时间选择器相关 ==========
@@ -495,6 +658,55 @@ const handleTimeWheel = (type, event) => {
   }
   
   // 选择新值
+  selectTimeWheelItem(type, newValue)
+}
+
+// 触摸事件状态管理 - 时间选择器
+const timeTouchState = {
+  startY: 0,
+  startValue: 0
+}
+
+const handleTimeTouchStart = (type, event) => {
+  event.preventDefault()
+  const touch = event.touches[0]
+  timeTouchState.startY = touch.clientY
+  timeTouchState.startValue = timeValue.value[type]
+}
+
+const handleTimeTouchMove = (type, event) => {
+  event.preventDefault()
+}
+
+const handleTimeTouchEnd = (type, event) => {
+  const touch = event.changedTouches[0]
+  const deltaY = touch.clientY - timeTouchState.startY
+  const sensitivity = 50
+  if (Math.abs(deltaY) < sensitivity) return
+
+  const direction = deltaY > 0 ? -1 : 1
+  let newValue = timeTouchState.startValue + direction
+
+  switch (type) {
+    case 'year':
+      break
+    case 'month':
+      if (newValue < 1) newValue = 12
+      if (newValue > 12) newValue = 1
+      break
+    case 'day':
+      const year = timeValue.value.year
+      const month = timeValue.value.month
+      const maxDay = daysInMonth(year, month)
+      if (newValue < 1) newValue = maxDay
+      if (newValue > maxDay) newValue = 1
+      break
+    case 'hour':
+      if (newValue < 0) newValue = 23
+      if (newValue > 23) newValue = 0
+      break
+  }
+
   selectTimeWheelItem(type, newValue)
 }
 
@@ -615,6 +827,51 @@ const handleDateWheel = (type, event) => {
   }
   
   // 选择新值
+  selectDateWheelItem(type, newValue)
+}
+
+// 触摸事件状态管理 - 日期选择器
+const dateTouchState = {
+  startY: 0,
+  startValue: 0
+}
+
+const handleDateTouchStart = (type, event) => {
+  event.preventDefault()
+  const touch = event.touches[0]
+  dateTouchState.startY = touch.clientY
+  dateTouchState.startValue = dateValue.value[type]
+}
+
+const handleDateTouchMove = (type, event) => {
+  event.preventDefault()
+}
+
+const handleDateTouchEnd = (type, event) => {
+  const touch = event.changedTouches[0]
+  const deltaY = touch.clientY - dateTouchState.startY
+  const sensitivity = 50
+  if (Math.abs(deltaY) < sensitivity) return
+
+  const direction = deltaY > 0 ? -1 : 1
+  let newValue = dateTouchState.startValue + direction
+
+  switch (type) {
+    case 'year':
+      break
+    case 'month':
+      if (newValue < 1) newValue = 12
+      if (newValue > 12) newValue = 1
+      break
+    case 'day':
+      const year = dateValue.value.year
+      const month = dateValue.value.month
+      const maxDay = daysInMonth(year, month)
+      if (newValue < 1) newValue = maxDay
+      if (newValue > maxDay) newValue = 1
+      break
+  }
+
   selectDateWheelItem(type, newValue)
 }
 
@@ -815,143 +1072,216 @@ watch(() => regionValue.value.province, (newProvince) => {
 
 /* 滑块容器 */
 .slider-container {
-  padding: 20px 0;
-  
-  .range-slider {
-    width: 100%;
+  padding: 30px 20px 20px;
+
+  .slider-track-wrapper {
+    position: relative;
+  }
+
+  .slider-track {
+    position: relative;
     height: 6px;
-    border-radius: 3px;
     background: #e8e8e8;
-    outline: none;
-    -webkit-appearance: none;
-    appearance: none;
+    border-radius: 3px;
+    margin: 40px 0 30px;
+  }
+
+  .slider-fill {
+    position: absolute;
+    height: 100%;
+    background: #555;
+    border-radius: 3px;
+    left: 0;
+    top: 0;
+    pointer-events: none;
+  }
+
+  .slider-node {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #e8e8e8;
+    border: 2px solid #ccc;
+    top: 50%;
+    transform: translate(-50%, -50%);
     cursor: pointer;
-    
-    &::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: #555;
-      cursor: pointer;
-      border: none;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      transition: all 0.2s ease;
-    }
-    
-    &::-moz-range-thumb {
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: #555;
-      cursor: pointer;
-      border: none;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      background: #ddd;
+      border-color: #aaa;
     }
   }
-  
+
+  .slider-node-selected {
+    background: #888;
+    border-color: #666;
+  }
+
+  .slider-node-active {
+    background: #333;
+    border-color: #333;
+    transform: translate(-50%, -50%) scale(1.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .slider-node-value {
+    position: absolute;
+    top: -28px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+  }
+
+  .slider-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+  }
+
+  .slider-label {
+    font-size: 12px;
+    color: #888;
+  }
+
   .slider-value {
     text-align: center;
     font-size: 32px;
     color: #333;
     font-weight: 700;
-    margin-top: 16px;
+    margin-top: 20px;
   }
 }
 
-/* 双滑块容器 */
-.range-slider-container {
-  padding: 20px 0;
-  
-  /* 滑动条行（左右布局） */
-  .range-slider-row {
+/* 双列选择器容器 */
+.range-picker-container {
+  .wheel-picker {
     display: flex;
-    align-items: flex-start;
     gap: 12px;
+    margin-bottom: 16px;
   }
-  
-  /* 左右侧标签（系统默认范围） */
-  .range-side-label {
-    font-size: 16px;
-    font-weight: 600;
-    color: #999;
-    flex-shrink: 0;
-    padding-top: 2px;
-    min-width: 30px;
-    text-align: center;
-  }
-  
-  /* 滑块轨道包装器 */
-  .range-track-wrapper {
-    position: relative;
+
+  .wheel-column {
     flex: 1;
-  }
-  
-  .range-track {
+    min-width: 60px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
     position: relative;
-    width: 100%;
-    height: 6px;
-    background: #e8e8e8;
-    border-radius: 3px;
   }
-  
-  .range-fill {
+
+  .wheel-column::before,
+  .wheel-column::after {
+    content: '';
     position: absolute;
-    height: 100%;
-    background: #555;
-    border-radius: 3px;
+    left: 0;
+    right: 0;
+    height: 80px;
     pointer-events: none;
+    z-index: 1;
   }
-  
-  .range-input {
-    position: absolute;
-    width: 100%;
-    height: 6px;
-    background: transparent;
-    pointer-events: none;
-    -webkit-appearance: none;
-    appearance: none;
+
+  .wheel-column::before {
     top: 0;
-    
-    &::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: #555;
-      cursor: pointer;
-      border: none;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      pointer-events: auto;
-    }
-    
-    &::-moz-range-thumb {
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: #555;
-      cursor: pointer;
-      border: none;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      pointer-events: auto;
-    }
+    background: linear-gradient(to bottom, #fff 0%, rgba(255,255,255,0) 100%);
+  }
+
+  .wheel-column::after {
+    bottom: 0;
+    background: linear-gradient(to top, #fff 0%, rgba(255,255,255,0) 100%);
+  }
+
+  .wheel-column-label {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #888;
+    padding: 8px 0;
+    border-bottom: 1px solid #e8e8e8;
+    background: #fafafa;
+    position: relative;
+    z-index: 2;
+  }
+
+  .wheel-display {
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 0;
+    overflow: hidden;
+    touch-action: none;
+    user-select: none;
   }
   
-  /* 用户选择值（跟随滑块） */
-  .range-values-row {
+  .wheel-display-item {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    color: #666;
+    transition: all 0.2s ease;
+    user-select: none;
+    cursor: pointer;
+  }
+  
+  .wheel-display-item-selected {
+    color: #333;
+    font-weight: 600;
+    font-size: 16px;
+    background-color: #f0f0f0;
+  }
+
+  .wheel-scroll-container {
+    height: 200px;
+    overflow-y: scroll;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     position: relative;
-    height: 24px;
-    margin-top: 8px;
-    
-    .range-value-label {
-      position: absolute;
-      font-size: 16px;
-      font-weight: 600;
-      color: #333;
-      top: 0;
+    z-index: 0;
+
+    &::-webkit-scrollbar {
+      display: none;
     }
+  }
+
+  .wheel-scroll-item {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    color: #666;
+    user-select: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .wheel-scroll-item-selected {
+    color: #333;
+    font-weight: 600;
+    font-size: 16px;
+    background-color: #f0f0f0;
+  }
+
+  .wheel-scroll-spacer {
+    height: 80px;
+  }
+
+  .range-preview {
+    padding: 12px;
+    background: #f8f8f8;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #666;
+    margin-top: 12px;
   }
 }
 
@@ -989,6 +1319,8 @@ watch(() => regionValue.value.province, (newProvince) => {
     justify-content: space-between;
     padding: 0;
     overflow: hidden;
+    touch-action: none;
+    user-select: none;
   }
   
   .wheel-display-item {
