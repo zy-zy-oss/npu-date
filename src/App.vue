@@ -1,11 +1,16 @@
 <template>
   <div id="app">
-    <router-view />
+    <RouterView v-slot="{ Component }">
+      <KeepAlive :max="5" :include="['Home', 'Questionnaire', 'SubQuestionnaire', 'QuestionnaireComplete']">
+        <component :is="Component" :key="$route.fullPath" />
+      </KeepAlive>
+    </RouterView>
   </div>
 </template>
 
 <script setup>
 import { onMounted } from 'vue'
+import { RouterView } from 'vue-router'
 
 onMounted(() => {
   // 初始化一些全局配置

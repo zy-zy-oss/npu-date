@@ -112,6 +112,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
+import { getQuestionnaire } from '@/api'
 import LoginModal from '@/components/LoginModal.vue'
 
 const router = useRouter()
@@ -214,6 +215,16 @@ const startCountdown = () => {
   countdownInterval = setInterval(calculateCountdown, 1000)
 }
 
+// 预加载问卷数据
+const preloadQuestionnaire = async () => {
+  try {
+    await getQuestionnaire()
+    console.log('✓ 问卷数据预加载完成')
+  } catch (error) {
+    console.error('✗ 问卷预加载失败:', error)
+  }
+}
+
 onMounted(() => {
   // 这里可以从API获取实际的学校数量
   // const data = await fetchSchoolCount()
@@ -221,6 +232,9 @@ onMounted(() => {
   
   // 启动倒计时
   startCountdown()
+  
+  // 预加载问卷数据
+  preloadQuestionnaire()
 })
 
 onUnmounted(() => {

@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { getQuestionnaire, submitQuestionnaire } from '@/api'
@@ -47,6 +47,7 @@ const questions = ref([])
 const currentIndex = ref(0)
 const answers = ref({})
 const questionnaireDone = ref(false)
+
 onMounted(async () => {
   try {
     const res = await getQuestionnaire()
@@ -76,6 +77,13 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+})
+
+// 清理事件监听
+onUnmounted(() => {
+  // 组件卸载时清理资源
+  questions.value = []
+  answers.value = {}
 })
 
 const currentQuestion = computed(() => {

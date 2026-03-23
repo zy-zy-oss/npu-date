@@ -1,14 +1,15 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, shallowRef } from 'vue'
 
 export const useUserStore = defineStore('user', () => {
-  const userInfo = ref(JSON.parse(localStorage.getItem('userInfo') || 'null'))
+  // 使用 shallowRef 优化大对象性能，因为通常只需要整体替换，不需要深层响应式
+  const userInfo = shallowRef(JSON.parse(localStorage.getItem('userInfo') || 'null'))
   const token = ref(localStorage.getItem('token') || '')
-  const questionnaire = ref(JSON.parse(localStorage.getItem('questionnaire') || 'null'))
-  const subQuestionnaire_date = ref(JSON.parse(localStorage.getItem('subQuestionnaire_date') || 'null'))
-  const subQuestionnaire_buddy = ref(JSON.parse(localStorage.getItem('subQuestionnaire_buddy') || 'null'))
-  const crushList = ref(JSON.parse(localStorage.getItem('crushList') || '[]'))
-  const matchResult = ref(JSON.parse(localStorage.getItem('matchResult') || 'null'))
+  const questionnaire = shallowRef(JSON.parse(localStorage.getItem('questionnaire') || 'null'))
+  const subQuestionnaire_date = shallowRef(JSON.parse(localStorage.getItem('subQuestionnaire_date') || 'null'))
+  const subQuestionnaire_buddy = shallowRef(JSON.parse(localStorage.getItem('subQuestionnaire_buddy') || 'null'))
+  const crushList = shallowRef(JSON.parse(localStorage.getItem('crushList') || '[]'))
+  const matchResult = shallowRef(JSON.parse(localStorage.getItem('matchResult') || 'null'))
 
   const isLoggedIn = computed(() => !!token.value)
   const isAdmin = computed(() => userInfo.value?.role === 'admin')
