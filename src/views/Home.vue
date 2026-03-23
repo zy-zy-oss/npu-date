@@ -25,6 +25,8 @@
             <span class="title-line">已入驻<span class="highlight">{{ schoolCount }}</span>所高校</span>
           </h1>
           <p class="subtitle">别让好天气和好心情，在等待中过期。</p>
+          <p class="subtitle">Find your NPU at NPU.</p>
+
         </div>
         
         <!-- 开始按钮 -->

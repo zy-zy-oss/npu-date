@@ -344,96 +344,205 @@ export const mockQuestionnaire_2 = {
   questions: [
     {
       id: 1,
-      type: 'checkbox',
-      title: '寻找什么类型的搭子',
-      key: 'buddyType',
+      type: 'radio',
+      title: '搭子类型',
+      key: 'buddyCategory',
       required: true,
       options: [
-        { label: '学习搭子', value: 'study' },
-        { label: '运动搭子', value: 'sports' },
-        { label: '饭搭子', value: 'food' },
-        { label: '游戏搭子', value: 'game' },
-        { label: '旅行搭子', value: 'travel' },
-        { label: '购物搭子', value: 'shopping' },
-        { label: '观影搭子', value: 'movie' },
-        { label: '其他', value: 'other' }
+        { label: '学习成长类', value: 'study' },
+        { label: '运动健康类', value: 'sports' },
+        { label: '游戏娱乐类', value: 'game' },
+        { label: '生活娱乐类', value: 'life' }
       ]
     },
     {
       id: 2,
       type: 'radio',
-      title: '期望搭子性别',
-      key: 'buddyGender',
-      required: false,
+      title: '具体学习成长类型',
+      key: 'studyType',
+      required: true,
+      dependencies: {
+        buddyCategory: ['study']
+      },
       options: [
-        { label: '男', value: 'male' },
-        { label: '女', value: 'female' },
-        { label: '不限', value: 'any' }
+        { label: '学习', value: 'study_basic' },
+        { label: '考研', value: 'study_kaoyan' },
+        { label: '考公', value: 'study_kaogong' },
+        { label: '阅读', value: 'study_reading' },
+        { label: '竞赛', value: 'study_competition' },
+        { label: '口语', value: 'study_oral' }
       ]
     },
     {
       id: 3,
-      type: 'checkbox',
-      title: '期望搭子年级',
-      key: 'buddyGrade',
-      required: false,
+      type: 'radio',
+      title: '具体运动健康类型',
+      key: 'sportsType',
+      required: true,
+      dependencies: {
+        buddyCategory: ['sports']
+      },
       options: [
-        { label: '2020级', value: '2020' },
-        { label: '2021级', value: '2021' },
-        { label: '2022级', value: '2022' },
-        { label: '2023级', value: '2023' },
-        { label: '2024级', value: '2024' }
+        { label: '跑步', value: 'sports_running' },
+        { label: '爬山', value: 'sports_hiking' },
+        { label: '游泳', value: 'sports_swimming' },
+        { label: '羽毛球', value: 'sports_badminton' },
+        { label: '篮球', value: 'sports_basketball' },
+        { label: '乒乓球', value: 'sports_tennis' },
+        { label: '台球', value: 'sports_billiards' },
+        { label: '骑行', value: 'sports_cycling' }
       ]
     },
     {
       id: 4,
-      type: 'checkbox',
-      title: '共同活动时间',
-      key: 'availableTime',
-      required: false,
+      type: 'radio',
+      title: '具体游戏类型',
+      key: 'gameType',
+      required: true,
+      dependencies: {
+        buddyCategory: ['game']
+      },
       options: [
-        { label: '工作日白天', value: 'weekday_day' },
-        { label: '工作日晚上', value: 'weekday_night' },
-        { label: '周末白天', value: 'weekend_day' },
-        { label: '周末晚上', value: 'weekend_night' },
-        { label: '时间灵活', value: 'flexible' }
+        { label: 'FPS', value: 'game_fps' },
+        { label: 'Moba', value: 'game_moba' },
+        { label: '开放世界/二次元', value: 'game_openworld' },
+        { label: '派对/休闲', value: 'game_party' },
+        { label: '生存沙盒建设', value: 'game_survival' },
+        { label: '杀戮尖塔', value: 'game_slaythespire' }
       ]
     },
     {
       id: 5,
       type: 'radio',
-      title: '活动频率期望',
-      key: 'frequency',
-      required: false,
+      title: '具体生活类型',
+      key: 'lifeType',
+      required: true,
+      dependencies: {
+        buddyCategory: ['life']
+      },
       options: [
-        { label: '每周1-2次', value: 'low' },
-        { label: '每周3-4次', value: 'medium' },
-        { label: '每天', value: 'high' },
-        { label: '随缘', value: 'random' }
+        { label: '即时活动搭子（演唱会、音乐节、话剧、漫展、艺术展）', value: 'life_immediate' },
+        { label: '自律', value: 'life_selfdiscipline' },
+        { label: '摄影', value: 'life_photography' },
+        { label: '剧本杀', value: 'life_boardgame' },
+        { label: 'K歌', value: 'life_karaoke' },
+        { label: '饭搭子', value: 'life_food' },
+        { label: 'City Walk搭子', value: 'life_citywalk' },
+        { label: '观影搭子', value: 'life_movie' },
+        { label: '观鸟', value: 'life_birdwatching' },
+        { label: '钓鱼搭子', value: 'life_fishing' }
       ]
     },
     {
       id: 6,
-      type: 'checkbox',
-      title: '期望搭子性格',
-      key: 'buddyPersonality',
-      required: false,
+      type: 'radio',
+      title: '选择活动类型',
+      key: 'activityType',
+      required: true,
+      dependencies: {
+        lifeType: ['life_immediate']
+      },
       options: [
-        { label: '开朗外向', value: '开朗外向' },
-        { label: '成熟稳重', value: '成熟稳重' },
-        { label: '文静内敛', value: '文静内敛' },
-        { label: '幽默风趣', value: '幽默风趣' },
-        { label: '温柔细腻', value: '温柔细腻' }
+        { label: '演唱会', value: 'concert' },
+        { label: '音乐节', value: 'music_festival' },
+        { label: '话剧', value: 'drama' },
+        { label: '艺术展', value: 'exhibition' },
+        { label: '漫展', value: 'comic_con' }
       ]
     },
     {
       id: 7,
+      type: 'region',
+      title: '选择活动城市',
+      key: 'activityCity',
+      required: true,
+      dependencies: {
+        lifeType: ['life_immediate']
+      },
+      showPreview: true
+    },
+    {
+      id: 8,
+      type: 'input',
+      title: '填写活动名称',
+      key: 'activityName',
+      required: true,
+      placeholder: '例如：周杰伦 2026 巡回演唱会',
+      dependencies: {
+        lifeType: ['life_immediate']
+      }
+    },
+    {
+      id: 9,
+      type: 'date',
+      title: '选择活动时间',
+      key: 'activityTime',
+      required: true,
+      dependencies: {
+        lifeType: ['life_immediate']
+      }
+    },
+    {
+      id: 10,
+      type: 'radio',
+      title: '匹配灵活度',
+      key: 'matchFlexibility',
+      required: true,
+      dependencies: {
+        lifeType: ['life_immediate']
+      },
+      options: [
+        { label: '只接受同一活动', value: 'same_activity' },
+        { label: '接受同城市不同活动', value: 'same_city' }
+      ]
+    },
+    {
+      id: 11,
       type: 'textarea',
-      title: '对搭子的期望',
-      key: 'buddyExpectation',
+      title: '备注',
+      key: 'activityRemark',
       required: false,
-      placeholder: '描述一下你期望的搭子是什么样的~',
-      maxLength: 200
+      placeholder: '可备注场次等信息',
+      maxLength: 100,
+      dependencies: {
+        lifeType: ['life_immediate']
+      }
+    },
+    {
+      id: 12,
+      type: 'date',
+      title: '时效（到何时停止匹配）',
+      key: 'timeLimit',
+      required: true,
+      placeholder: '请选择截止时间'
+    },
+    {
+      id: 13,
+      type: 'radio',
+      title: '结伴方式',
+      key: 'buddyMode',
+      required: true,
+      options: [
+        { label: '1V1', value: 'one_on_one' },
+        { label: 'NVN', value: 'group' }
+      ]
+    },
+    {
+      id: 14,
+      type: 'select',
+      title: 'NVN人数',
+      key: 'groupSize',
+      required: true,
+      dependencies: {
+        buddyMode: ['group']
+      },
+      options: [
+        { label: '3人', value: '3' },
+        { label: '4人', value: '4' },
+        { label: '5人', value: '5' },
+        { label: '6人', value: '6' },
+        { label: '7人及以上', value: '7+' }
+      ]
     }
   ]
 }

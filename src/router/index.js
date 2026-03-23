@@ -12,44 +12,20 @@ const routes = [
     path: '/questionnaire',
     name: 'Questionnaire',
     component: () => import('@/views/questionnaire/Questionnaire.vue'),
-    meta: { title: '基础问卷' },
-    beforeEnter: (to, from, next) => {
-      const userStore = useUserStore()
-      if (!userStore.isLoggedIn) {
-        next('/')
-      } else {
-        next()
-      }
-    }
+    meta: { title: '基础问卷' }
   },
   {
     path: '/questionnaire/:type',
     name: 'SubQuestionnaire',
     component: () => import('@/views/questionnaire/SubQuestionnaire.vue'),
     meta: { title: '详细问卷' },
-    props: true,
-    beforeEnter: (to, from, next) => {
-      const userStore = useUserStore()
-      if (!userStore.isLoggedIn) {
-        next('/')
-      } else {
-        next()
-      }
-    }
+    props: true
   },
   {
     path: '/questionnaire-complete',
     name: 'QuestionnaireComplete',
     component: () => import('@/views/QuestionnaireComplete.vue'),
-    meta: { title: '问卷完成' },
-    beforeEnter: (to, from, next) => {
-      const userStore = useUserStore()
-      if (!userStore.isLoggedIn) {
-        next('/')
-      } else {
-        next()
-      }
-    }
+    meta: { title: '问卷完成' }
   },
   {
     path: '/result',

@@ -1,7 +1,7 @@
 <template>
   <div class="questionnaire-page">
     <!-- 头部 -->
-    <Header :currentIndex="currentIndex" :totalCount="questions.length" :title="pageTitle" />
+    <Header :currentIndex="currentIndex" :totalCount="filteredQuestions.length" :title="pageTitle" />
 
     <!-- 问卷内容 -->
     <div class="content-wrapper">
@@ -16,7 +16,7 @@
         <!-- 按钮区域 -->
         <NavButtons
           :is-first="currentIndex === 0"
-          :is-last="currentIndex === questions.length - 1"
+          :is-last="currentIndex === filteredQuestions.length - 1"
           :prev-disabled="false"
           :next-disabled="!canNext"
           @prev="prevQuestion"
@@ -127,7 +127,39 @@ onUnmounted(() => {
 })
 
 const currentQuestion = computed(() => {
-  return questions.value[currentIndex.value]
+  return filteredQuestions.value[currentIndex.value]
+})
+
+const filteredQuestions = computed(() => {
+  return questions.value.filter(q => {
+    // 检查是否有依赖关系
+    if (!q.dependencies) {
+      return true
+    }
+    
+    // 检查所有依赖条件
+    for (const [key, values] of Object.entries(q.dependencies)) {
+      const answer = answers.value[key]
+      if (!answer) {
+        return false
+      }
+      
+      // 如果是数组类型的答案（如checkbox），检查是否包含任一依赖值
+      if (Array.isArray(answer)) {
+        if (!answer.some(a => values.includes(a))) {
+          return false
+        }
+      } 
+      // 如果是单个值（如radio、select），检查是否等于依赖值
+      else {
+        if (!values.includes(answer)) {
+          return false
+        }
+      }
+    }
+    
+    return true
+  })
 })
 
 const canNext = computed(() => {
@@ -151,7 +183,7 @@ const canNext = computed(() => {
 })
 
 const nextQuestion = () => {
-  if (currentIndex.value < questions.value.length - 1) {
+  if (currentIndex.value < filteredQuestions.value.length - 1) {
     currentIndex.value++
   }
 }
@@ -176,7 +208,7 @@ const autoNextOnSingleChoice = () => {
 }
 
 const completeQuestionnaire = async () => {
-  const allAnswered = questions.value
+  const allAnswered = filteredQuestions.value
     .filter(q => q.required)
     .every(q => {
       const answer = answers.value[q.key]

@@ -204,6 +204,89 @@
         {{ regionDisplay }}
       </div>
     </div>
+    
+    <!-- 单行输入框 -->
+    <input 
+      v-if="question.type === 'input'"
+      :value="modelValue"
+      :placeholder="question.placeholder"
+      :maxlength="question.maxLength"
+      class="input-field"
+      @input="$emit('update:modelValue', $event.target.value)"
+    />
+    
+    <!-- 下拉选择框 -->
+    <select 
+      v-if="question.type === 'select'"
+      :value="modelValue"
+      class="select-field"
+      @change="$emit('update:modelValue', $event.target.value)"
+    >
+      <option value="">请选择</option>
+      <option v-for="option in question.options" :key="option.value" :value="option.value">{{ option.label }}</option>
+    </select>
+    
+    <!-- 日期选择器 -->
+    <div v-if="question.type === 'date'" class="date-picker-container">
+      <div class="wheel-picker">
+        <!-- 年 -->
+        <div class="wheel-column">
+          <div class="wheel-column-label">年</div>
+          <div 
+            class="wheel-display"
+            @wheel="handleDateWheel('year', $event)"
+          >
+            <div 
+              v-for="(year, index) in getDateWheelDisplayItems('year')" 
+              :key="index"
+              :class="['wheel-display-item', { 'wheel-display-item-selected': year === dateValue.year }]"
+              @click="selectDateWheelItem('year', year)"
+            >
+              {{ year }}
+            </div>
+          </div>
+        </div>
+        
+        <!-- 月 -->
+        <div class="wheel-column">
+          <div class="wheel-column-label">月</div>
+          <div 
+            class="wheel-display"
+            @wheel="handleDateWheel('month', $event)"
+          >
+            <div 
+              v-for="(month, index) in getDateWheelDisplayItems('month')" 
+              :key="index"
+              :class="['wheel-display-item', { 'wheel-display-item-selected': month === dateValue.month }]"
+              @click="selectDateWheelItem('month', month)"
+            >
+              {{ month }}
+            </div>
+          </div>
+        </div>
+        
+        <!-- 日 -->
+        <div class="wheel-column">
+          <div class="wheel-column-label">日</div>
+          <div 
+            class="wheel-display"
+            @wheel="handleDateWheel('day', $event)"
+          >
+            <div 
+              v-for="(day, index) in getDateWheelDisplayItems('day')" 
+              :key="index"
+              :class="['wheel-display-item', { 'wheel-display-item-selected': day === dateValue.day }]"
+              @click="selectDateWheelItem('day', day)"
+            >
+              {{ day }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div v-if="question.showPreview && dateDisplay" class="date-preview">
+        {{ dateDisplay }}
+      </div>
+    </div>
   </div>
 </template>
 
@@ -438,6 +521,125 @@ const selectTimeWheelItem = (type, value) => {
 const timeDisplay = computed(() => {
   const val = timeValue.value
   return `${val.year}年${val.month}月${val.day}日 ${String(val.hour).padStart(2, '0')}:00`
+})
+
+// ========== 日期选择器相关 ==========
+const defaultDate = {
+  year: new Date().getFullYear(),
+  month: new Date().getMonth() + 1,
+  day: new Date().getDate()
+}
+
+// 日期值
+const dateValue = computed(() => {
+  if (!props.modelValue) {
+    return defaultDate
+  }
+  const dateParts = String(props.modelValue).split('-')
+  
+  if (dateParts.length < 3) {
+    return defaultDate
+  }
+  
+  return {
+    year: parseInt(dateParts[0]),
+    month: parseInt(dateParts[1]),
+    day: parseInt(dateParts[2])
+  }
+})
+
+// 获取显示的5个候选数字（固定框，数字变化）
+const getDateWheelDisplayItems = (type) => {
+  const currentValue = dateValue.value[type]
+  const displayItems = []
+  
+  // 获取前后各2个值，总共5个
+  for (let i = -2; i <= 2; i++) {
+    let value = currentValue + i
+    
+    // 针对不同类型进行边界处理
+    switch (type) {
+      case 'year':
+        // 年份没有边界限制，直接返回
+        break
+      case 'month':
+        // 月份范围1-12
+        while (value < 1) value += 12
+        while (value > 12) value -= 12
+        break
+      case 'day':
+        // 日期范围根据月份和年份变化
+        const year = dateValue.value.year
+        const month = dateValue.value.month
+        const maxDay = daysInMonth(year, month)
+        while (value < 1) value += maxDay
+        while (value > maxDay) value -= maxDay
+        break
+    }
+    
+    displayItems.push(value)
+  }
+  
+  return displayItems
+}
+
+// 处理鼠标滚轮事件
+const handleDateWheel = (type, event) => {
+  event.preventDefault()
+  
+  const currentValue = dateValue.value[type]
+  
+  // 向上滚动（deltaY > 0）：值加1
+  // 向下滚动（deltaY < 0）：值减1
+  const direction = event.deltaY > 0 ? 1 : -1
+  let newValue = currentValue + direction
+  
+  // 针对不同类型进行边界处理
+  switch (type) {
+    case 'year':
+      // 年份没有边界限制
+      break
+    case 'month':
+      // 月份范围1-12
+      if (newValue < 1) newValue = 12
+      if (newValue > 12) newValue = 1
+      break
+    case 'day':
+      // 日期范围根据月份和年份变化
+      const year = dateValue.value.year
+      const month = dateValue.value.month
+      const maxDay = daysInMonth(year, month)
+      if (newValue < 1) newValue = maxDay
+      if (newValue > maxDay) newValue = 1
+      break
+  }
+  
+  // 选择新值
+  selectDateWheelItem(type, newValue)
+}
+
+// 选择日期选择器滚轮项
+const selectDateWheelItem = (type, value) => {
+  const newDate = { ...dateValue.value }
+  newDate[type] = value
+  
+  // 如果月份变化，可能需要调整日期
+  if (type === 'month' || type === 'year') {
+    const maxDay = daysInMonth(newDate.year, newDate.month)
+    if (newDate.day > maxDay) {
+      newDate.day = maxDay
+    }
+  }
+  
+  // 格式化输出
+  const dateStr = `${newDate.year}-${String(newDate.month).padStart(2, '0')}-${String(newDate.day).padStart(2, '0')}`
+  emit('update:modelValue', dateStr)
+}
+
+// 日期显示
+const dateDisplay = computed(() => {
+  const val = dateValue.value
+  return `${val.year}年${val.month}月${val.day}日`
 })
 
 // ========== 地区选择相关 ==========
@@ -863,6 +1065,128 @@ watch(() => regionValue.value.province, (newProvince) => {
   }
   
   .region-preview {
+    padding: 12px;
+    background: #f8f8f8;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #666;
+    margin-top: 12px;
+  }
+}
+
+/* 单行输入框 */
+.input-field {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  background: #fff;
+  color: #333;
+  line-height: 1.5;
+  
+  &::placeholder {
+    color: #ccc;
+  }
+  
+  &:hover {
+    border-color: #ccc;
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: #333;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* 下拉选择框 */
+.select-field {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  background: #fff;
+  color: #333;
+  line-height: 1.5;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+  
+  &:hover {
+    border-color: #ccc;
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: #333;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* 日期选择器容器 */
+.date-picker-container {
+  .wheel-picker {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  
+  .wheel-column {
+    flex: 1;
+    min-width: 60px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+  }
+  
+  .wheel-column-label {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #888;
+    padding: 8px 0;
+    border-bottom: 1px solid #e8e8e8;
+    background: #fafafa;
+  }
+  
+  .wheel-display {
+    height: 200px; /* 5个可见项 * 40px */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 0;
+    overflow: hidden;
+  }
+  
+  .wheel-display-item {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    color: #666;
+    transition: all 0.2s ease;
+    user-select: none;
+    cursor: pointer;
+  }
+  
+  .wheel-display-item-selected {
+    color: #333;
+    font-weight: 600;
+    font-size: 16px;
+    background-color: #f0f0f0;
+  }
+  
+  .date-preview {
     padding: 12px;
     background: #f8f8f8;
     border-radius: 6px;
