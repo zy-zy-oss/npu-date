@@ -34,7 +34,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
-import { getSubQuestionnaire, submitQuestionnaire } from '@/api'
+import { getSubQuestionnaire } from '@/api'
 import Header from './components/Header.vue'
 import EmailVerify from './components/EmailVerify.vue'
 import BaseInfoCard from './components/BaseInfoCard.vue'
@@ -78,13 +78,17 @@ onMounted(async () => {
       } else if (q.type === 'slider') {
         answers.value[q.key] = q.defaultValue || q.min
       } else if (q.type === 'range') {
-        const defaultMin = q.defaultValue?.min ?? 20
-        const defaultMax = q.defaultValue?.max ?? 20
+        const defaultMin = q.defaultValue?.min ?? q.defaultMin ?? q.min ?? 20
+        const defaultMax = q.defaultValue?.max ?? q.defaultMax ?? q.max ?? 20
         answers.value[q.key] = { min: defaultMin, max: defaultMax }
       } else if (q.type === 'region') {
         answers.value[q.key] = { province: '', city: '' }
       } else if (q.type === 'date' || q.type === 'datetime') {
-        answers.value[q.key] = ''
+        const now = new Date()
+        const y = now.getFullYear()
+        const m = String(now.getMonth() + 1).padStart(2, '0')
+        const d = String(now.getDate()).padStart(2, '0')
+        answers.value[q.key] = q.type === 'date' ? `${y}-${m}-${d}` : `${y}-${m}-${d} 00:00`
       } else {
         answers.value[q.key] = ''
       }
@@ -115,7 +119,7 @@ const handleKeyDown = (event) => {
   } else if (event.key === 'ArrowRight') {
     event.preventDefault()
     if (canNext.value) {
-      if (currentIndex.value === questions.value.length - 1) {
+      if (currentIndex.value === filteredQuestions.value.length - 1) {
         completeQuestionnaire()
       } else {
         nextQuestion()
@@ -209,7 +213,7 @@ const autoNextOnSingleChoice = () => {
   }, 100)
 }
 
-const completeQuestionnaire = async () => {
+const completeQuestionnaire = () => {
   const allAnswered = filteredQuestions.value
     .filter(q => q.required)
     .every(q => {
@@ -234,21 +238,17 @@ const completeQuestionnaire = async () => {
     return
   }
 
-  // 保存答案到store
-  userStore.setSubQuestionnaire(props.type, { ...answers.value })
+  // 只提交当前可见问题的答案（排除被依赖条件过滤掉的字段）
+  const visibleKeys = new Set(filteredQuestions.value.map(q => q.key))
+  const filteredAnswers = Object.fromEntries(
+    Object.entries(answers.value).filter(([key]) => visibleKeys.has(key))
+  )
 
-  // 提交问卷
-  try {
-    await submitQuestionnaire({
-      type: props.type,
-      answers: answers.value
-    })
-    // 显示邮箱验证界面
-    questionnaireDone.value = true
-  } catch (error) {
-    console.error('提交问卷失败', error)
-    alert('提交失败，请重试')
-  }
+  // 保存答案到store，实际提交在邮箱验证后由 EmailVerify 组件完成
+  userStore.setSubQuestionnaire(props.type, { ...filteredAnswers })
+
+  // 显示邮箱验证界面
+  questionnaireDone.value = true
 }
 </script>
 
