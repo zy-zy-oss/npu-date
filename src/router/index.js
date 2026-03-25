@@ -11,13 +11,13 @@ const routes = [
   {
     path: '/questionnaire',
     name: 'Questionnaire',
-    component: () => import('@/views/questionnaire/Questionnaire.vue'),
+    component: () => import('@/views/Questionnaire/Questionnaire.vue'),
     meta: { title: '基础问卷' }
   },
   {
     path: '/questionnaire/:type',
     name: 'SubQuestionnaire',
-    component: () => import('@/views/questionnaire/SubQuestionnaire.vue'),
+    component: () => import('@/views/Questionnaire/SubQuestionnaire.vue'),
     meta: { title: '详细问卷' },
     props: true
   },
@@ -26,20 +26,6 @@ const routes = [
     name: 'QuestionnaireComplete',
     component: () => import('@/views/QuestionnaireComplete.vue'),
     meta: { title: '问卷完成' }
-  },
-  {
-    path: '/result',
-    name: 'Result',
-    component: () => import('@/views/Result.vue'),
-    meta: { title: '我的匹配' },
-    beforeEnter: (to, from, next) => {
-      const userStore = useUserStore()
-      if (!userStore.isLoggedIn) {
-        next('/')
-      } else {
-        next()
-      }
-    }
   }
 ]
 

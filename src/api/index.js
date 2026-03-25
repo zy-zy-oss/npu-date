@@ -1,9 +1,9 @@
 import axios from 'axios'
 import { mockUsers, mockQuestionnaire, mockQuestionnaire_1, mockQuestionnaire_2, mockNotices, mockLogs, mockMatchResult, MOCK_DELAY } from '@/utils/mockData'
 
-// 创建axios实例
+// 创建axios实例 - 指向真实后端
 const service = axios.create({
-  baseURL: '/api',
+  baseURL: 'http://localhost:5001/api',
   timeout: 10000
 })
 
@@ -35,79 +35,25 @@ service.interceptors.response.use(
 // 模拟API延迟
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
-// 模拟登录
-export const login = async (email, password) => {
-  await delay(MOCK_DELAY)
-  const user = mockUsers.find(u => u.email === email)
-  if (user && password === '123456') {
-    return {
-      code: 200,
-      message: '登录成功',
-      data: {
-        token: 'mock_token_' + Date.now(),
-        userInfo: user
-      }
-    }
-  }
-  return {
-    code: 401,
-    message: '邮箱或密码错误'
-  }
-}
 
-// 模拟注册
-export const register = async (email, password, code) => {
-  await delay(MOCK_DELAY)
-  const exists = mockUsers.find(u => u.email === email)
-  if (exists) {
-    return {
-      code: 400,
-      message: '该邮箱已注册，请直接登录'
-    }
-  }
-  // 验证验证码
-  if (code !== '123456') {
-    return {
-      code: 400,
-      message: '验证码错误'
-    }
-  }
-  // 验证西工大邮箱
-  if (!email.endsWith('@nwpu.edu.cn')) {
-    return {
-      code: 400,
-      message: '请使用西北工业大学邮箱注册'
-    }
-  }
-  return {
-    code: 200,
-    message: '注册成功'
-  }
-}
-
-// 模拟发送验证码
+// 发送验证码
 export const sendVerifyCode = async (email) => {
-  await delay(MOCK_DELAY)
-  if (!email.endsWith('@nwpu.edu.cn')) {
-    return {
-      code: 400,
-      message: '请使用西北工业大学邮箱'
-    }
-  }
-  return {
-    code: 200,
-    message: '验证码已发送',
-    data: { code: '123456' }
-  }
+  return service.post('/auth/send-code', { email })
+}
+
+// 验证邮箱验证码
+export const verifyEmail = async (email, code) => {
+  return service.post('/auth/verify-code', { email, code })
+}
+
+// 提交问卷（带邮箱验证）
+export const submitQuestionnaireWithVerify = async (data) => {
+  return service.post('/questionnaire/submit', data)
 }
 
 // 获取问卷题目
 export const getQuestionnaire = async () => {
-  await delay(MOCK_DELAY)
-  return {
-    code: 200,
-    data: mockQuestionnaire
-  }
+  return service.get('/questionnaire')
 }
 
 // 获取子问卷题目（date/buddy）
@@ -132,11 +78,16 @@ export const getSubQuestionnaire = async (type) => {
 
 // 提交问卷
 export const submitQuestionnaire = async (data) => {
-  await delay(MOCK_DELAY)
-  return {
-    code: 200,
-    message: '问卷提交成功'
+  // data 可能是 { answers: {...}, email: '...' } 或直接是 {...}
+  const answers = data.answers || data
+  const submitData = { answers }
+  
+  // 如果有email，添加到提交数据中
+  if (data.email) {
+    submitData.email = data.email
   }
+  
+  return service.post('/questionnaire/submit', submitData)
 }
 
 // 获取心动列表

@@ -6,7 +6,7 @@
     <!-- 问卷内容 -->
     <div class="content-wrapper">
       <!-- 问卷完成后的邮箱输入界面 -->
-      <EmailVerify v-if="questionnaireDone" />
+      <EmailVerify v-if="questionnaireDone" :questionnaireType="props.type" />
 
       <!-- 问卷问题卡片 -->
       <div v-if="!questionnaireDone && currentQuestion" class="question-card-container">

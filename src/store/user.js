@@ -2,36 +2,14 @@ import { defineStore } from 'pinia'
 import { ref, computed, shallowRef } from 'vue'
 
 export const useUserStore = defineStore('user', () => {
-  // 使用 shallowRef 优化大对象性能，因为通常只需要整体替换，不需要深层响应式
-  const userInfo = shallowRef(JSON.parse(localStorage.getItem('userInfo') || 'null'))
-  const token = ref(localStorage.getItem('token') || '')
+  // 问卷数据存储
   const questionnaire = shallowRef(JSON.parse(localStorage.getItem('questionnaire') || 'null'))
   const subQuestionnaire_date = shallowRef(JSON.parse(localStorage.getItem('subQuestionnaire_date') || 'null'))
   const subQuestionnaire_buddy = shallowRef(JSON.parse(localStorage.getItem('subQuestionnaire_buddy') || 'null'))
   const crushList = shallowRef(JSON.parse(localStorage.getItem('crushList') || '[]'))
   const matchResult = shallowRef(JSON.parse(localStorage.getItem('matchResult') || 'null'))
 
-  const isLoggedIn = computed(() => !!token.value)
-  const isAdmin = computed(() => userInfo.value?.role === 'admin')
   const isMatched = computed(() => !!matchResult.value)
-
-  function setUserInfo(info) {
-    userInfo.value = info
-    if (info) {
-      localStorage.setItem('userInfo', JSON.stringify(info))
-    } else {
-      localStorage.removeItem('userInfo')
-    }
-  }
-
-  function setToken(newToken) {
-    token.value = newToken
-    if (newToken) {
-      localStorage.setItem('token', newToken)
-    } else {
-      localStorage.removeItem('token')
-    }
-  }
 
   function setQuestionnaire(data) {
     questionnaire.value = data
@@ -74,9 +52,16 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  function logout() {
-    userInfo.value = null
-    token.value = null
+  function getSubQuestionnaire(type) {
+    if (type === 'date') {
+      return subQuestionnaire_date.value
+    } else if (type === 'buddy') {
+      return subQuestionnaire_buddy.value
+    }
+    return null
+  }
+
+  function clearAllData() {
     questionnaire.value = null
     subQuestionnaire_date.value = null
     subQuestionnaire_buddy.value = null
@@ -86,22 +71,17 @@ export const useUserStore = defineStore('user', () => {
   }
 
   return {
-    userInfo,
-    token,
     questionnaire,
     subQuestionnaire_date,
     subQuestionnaire_buddy,
     crushList,
     matchResult,
-    isLoggedIn,
-    isAdmin,
     isMatched,
-    setUserInfo,
-    setToken,
     setQuestionnaire,
     setSubQuestionnaire,
+    getSubQuestionnaire,
     setCrushList,
     setMatchResult,
-    logout
+    clearAllData
   }
 })

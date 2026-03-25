@@ -6,7 +6,7 @@
     <!-- 问卷内容 -->
     <div class="content-wrapper">
       <!-- 问卷完成后的邮箱输入界面 -->
-      <EmailVerify v-if="questionnaireDone" />
+      <EmailVerify v-if="questionnaireDone" :questionnaireType="'base'" />
 
       <!-- 问卷问题卡片 -->
       <div v-if="!questionnaireDone && currentQuestion" class="question-card-container">
@@ -174,10 +174,19 @@ const completeQuestionnaire = async () => {
   if (lookingFor === 'date' || lookingFor === 'buddy') {
     // 先提交基础问卷
     try {
-      await submitQuestionnaire({
+      // 检查是否有已保存的邮箱
+      const savedEmail = localStorage.getItem('userEmail')
+      const submitData = {
         type: 'base',
         answers: answers.value
-      })
+      }
+      
+      // 如果有保存的邮箱，添加到提交数据中
+      if (savedEmail) {
+        submitData.email = savedEmail
+      }
+      
+      await submitQuestionnaire(submitData)
       // 跳转到对应的子问卷
       router.push(`/questionnaire/${lookingFor}`)
     } catch (error) {

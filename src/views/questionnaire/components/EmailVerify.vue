@@ -11,14 +11,14 @@
         <div class="email-form">
             <div class="email-input-wrapper">
                 <input v-model="emailLocalPart" type="text" placeholder="邮箱名称" class="email-local-input"
-                    @keyup.enter="sendVerifyCode" />
+                    @keyup.enter="handleSendVerifyCode" />
                 <span class="email-at">@</span>
                 <select v-model="emailDomain" class="email-domain-select">
                     <option value="nwpu.edu.cn">nwpu.edu.cn</option>
                     <option value="mail.nwpu.edu.cn">mail.nwpu.edu.cn</option>
                 </select>
             </div>
-            <button class="send-code-btn" @click="sendVerifyCode" :disabled="!isValidEmail || emailSending">
+            <button class="send-code-btn" @click="handleSendVerifyCode" :disabled="!isValidEmail || emailSending">
                 {{ emailSending ? '...' : '发送' }}
             </button>
         </div>
@@ -49,10 +49,17 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
-import { submitQuestionnaire } from '@/api'
+import { submitQuestionnaireWithVerify, sendVerifyCode, verifyEmail } from '@/api'
 
 const router = useRouter()
 const userStore = useUserStore()
+
+const props = defineProps({
+  questionnaireType: {
+    type: String,
+    required: true
+  }
+})
 
 const emailLocalPart = ref('')
 const emailDomain = ref('nwpu.edu.cn')
@@ -61,6 +68,7 @@ const emailVerifyStep = ref('input') // 'input' 或 'verify'
 const emailSending = ref(false)
 const emailCountdown = ref(60)
 const submitting = ref(false)
+const sentEmail = ref('') // 保存发送验证码的邮箱
 let countdownInterval = null
 
 const emailInput = computed(() => {
@@ -73,7 +81,7 @@ const isValidEmail = computed(() => {
   return emailLocalPart.value.trim() !== '' && emailDomain.value !== ''
 })
 // 发送验证码
-const sendVerifyCode = async () => {
+const handleSendVerifyCode = async () => {
   if (!isValidEmail.value) {
     alert('请输入正确的西北工业大学邮箱地址')
     return
@@ -81,16 +89,20 @@ const sendVerifyCode = async () => {
   
   emailSending.value = true
   try {
-    // 模拟发送验证码
-    await new Promise(resolve => setTimeout(resolve, 500))
-    emailVerifyStep.value = 'verify'
-    emailVerifyCode.value = ''
-    emailCountdown.value = 60
-    
-    // 启动倒计时
-    startCountdown()
+    const response = await sendVerifyCode(emailInput.value)
+    if (response.code === 200) {
+      sentEmail.value = emailInput.value // 保存发送验证码的邮箱
+      emailVerifyStep.value = 'verify'
+      emailVerifyCode.value = ''
+      emailCountdown.value = 60
+      
+      // 启动倒计时
+      startCountdown()
+    } else {
+      alert(response.message || '发送验证码失败')
+    }
   } catch (error) {
-    alert('发送验证码失败')
+    alert('发送验证码失败，请稍后重试')
     console.error(error)
   } finally {
     emailSending.value = false
@@ -117,17 +129,41 @@ const confirmEmailVerify = async () => {
     return
   }
   
+  // 检查邮箱是否改变
+  if (emailInput.value !== sentEmail.value) {
+    alert('邮箱已改变，请重新发送验证码')
+    return
+  }
+  
   // 验证码验证成功
   submitting.value = true
   try {
-    // 模拟验证过程
-    await new Promise(resolve => setTimeout(resolve, 500))
+    // 1. 验证邮箱验证码
+    const verifyResponse = await verifyEmail(sentEmail.value, emailVerifyCode.value)
+    
+    if (verifyResponse.code !== 200) {
+      alert(verifyResponse.message || '验证码错误')
+      return
+    }
+    
+    // 2. 保存邮箱到localStorage，用于后续问卷提交
+    localStorage.setItem('userEmail', sentEmail.value)
+    
+    // 3. 直接提交问卷数据（使用邮箱标识）
+    const questionnaireData = userStore.getSubQuestionnaire(props.questionnaireType)
+    if (questionnaireData) {
+      await submitQuestionnaireWithVerify({
+        type: props.questionnaireType,
+        answers: questionnaireData,
+        email: sentEmail.value  // 添加邮箱到提交数据中
+      })
+    }
     
     // 跳转到完成页面
     clearInterval(countdownInterval)
     router.push({
       path: '/questionnaire-complete',
-      query: { email: emailInput.value }
+      query: { email: sentEmail.value }
     })
   } catch (error) {
     alert('验证失败，请稍后重试')
@@ -143,6 +179,7 @@ const changeEmail = () => {
   emailDomain.value = ''
   emailVerifyCode.value = ''
   emailVerifyStep.value = 'input'
+  sentEmail.value = '' // 清除发送的邮箱记录
   clearInterval(countdownInterval)
   emailCountdown.value = 60
 }

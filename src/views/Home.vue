@@ -32,7 +32,6 @@
         <!-- 开始按钮 -->
         <div class="button-container">
           <button class="start-btn" @click="handleStart">开始测试</button>
-          <button class="login-btn" @click="handleLogin">已测试，去登录</button>
         </div>
         
         <!-- 倒计时 -->
@@ -99,27 +98,15 @@
       </div>
     </div>
   </div>
-  
-  <!-- 登录弹窗 -->
-  <LoginModal 
-    :visible="showLoginModal"
-    @close="handleCloseLoginModal"
-    @login-success="handleLoginSuccess"
-  />
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useUserStore } from '@/store/user'
 import { getQuestionnaire } from '@/api'
-import LoginModal from '@/components/LoginModal.vue'
 
 const router = useRouter()
-const userStore = useUserStore()
 
-// 登录弹窗状态
-const showLoginModal = ref(false)
 
 // 动态学校数量
 const schoolCount = ref(1)
@@ -245,22 +232,6 @@ onUnmounted(() => {
 
 const handleStart = () => {
   router.push('/questionnaire')
-}
-
-const handleLogin = () => {
-  // 打开登录弹窗
-  showLoginModal.value = true
-}
-
-const handleLoginSuccess = (userInfo) => {
-  // 登录成功后跳转到result页面
-  userStore.setUserInfo(userInfo)
-  userStore.setToken('mock-token') // 模拟token
-  router.push('/result')
-}
-
-const handleCloseLoginModal = () => {
-  showLoginModal.value = false
 }
 </script>
 
