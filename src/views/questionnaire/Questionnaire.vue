@@ -59,7 +59,9 @@ onMounted(async () => {
       } else if (q.type === 'slider') {
         answers.value[q.key] = q.defaultValue || q.min
       } else if (q.type === 'range') {
-        answers.value[q.key] = q.defaultValue || null
+        const defaultMin = q.defaultValue?.min ?? 20
+        const defaultMax = q.defaultValue?.max ?? 20
+        answers.value[q.key] = { min: defaultMin, max: defaultMax }
       } else if (q.type === 'region') {
         answers.value[q.key] = { province: '', city: '' }
       } else if (q.type === 'date' || q.type === 'datetime') {
