@@ -34,7 +34,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
-import { getQuestionnaire, submitQuestionnaire } from '@/api'
+import { getQuestionnaire } from '@/api'
 
 const router = useRouter()
 import Header from './components/Header.vue'
@@ -59,8 +59,8 @@ onMounted(async () => {
       } else if (q.type === 'slider') {
         answers.value[q.key] = q.defaultValue || q.min
       } else if (q.type === 'range') {
-        const defaultMin = q.defaultValue?.min ?? 20
-        const defaultMax = q.defaultValue?.max ?? 20
+        const defaultMin = q.defaultValue?.min ?? q.defaultMin ?? q.min ?? 20
+        const defaultMax = q.defaultValue?.max ?? q.defaultMax ?? q.max ?? 20
         answers.value[q.key] = { min: defaultMin, max: defaultMax }
       } else if (q.type === 'region') {
         answers.value[q.key] = { province: '', city: '' }
@@ -143,7 +143,7 @@ const autoNextOnSingleChoice = () => {
   }, 100)
 }
 
-const completeQuestionnaire = async () => {
+const completeQuestionnaire = () => {
   const allAnswered = questions.value
     .filter(q => q.required)
     .every(q => {
@@ -174,27 +174,8 @@ const completeQuestionnaire = async () => {
   // 根据用户选择的寻找目的跳转到对应子问卷
   const lookingFor = answers.value.lookingFor
   if (lookingFor === 'date' || lookingFor === 'buddy') {
-    // 先提交基础问卷
-    try {
-      // 检查是否有已保存的邮箱
-      const savedEmail = localStorage.getItem('userEmail')
-      const submitData = {
-        type: 'base',
-        answers: answers.value
-      }
-      
-      // 如果有保存的邮箱，添加到提交数据中
-      if (savedEmail) {
-        submitData.email = savedEmail
-      }
-      
-      await submitQuestionnaire(submitData)
-      // 跳转到对应的子问卷
-      router.push(`/questionnaire/${lookingFor}`)
-    } catch (error) {
-      console.error('提交基础问卷失败', error)
-      alert('提交失败，请重试')
-    }
+    // 直接跳转到对应的子问卷，不在此处提交基础问卷
+    router.push(`/questionnaire/${lookingFor}`)
   } else {
     // 如果没有选择或选择无效，显示完成页面
     questionnaireDone.value = true
