@@ -366,9 +366,9 @@ const VISIBLE_ITEMS = 5
 
 const rangeOptions = computed(() => {
   const min = props.question.min ?? 18
-  const center = props.question.center ?? 25
+  const max = props.question.max ?? 35
   const options = []
-  for (let i = min; i <= center; i++) {
+  for (let i = min; i <= max; i++) {
     options.push(i)
   }
   return options
@@ -392,7 +392,8 @@ const rangeValue = computed(() => {
 
 const rangeDisplay = computed(() => {
   const val = rangeValue.value
-  return `年龄范围：${val.min} - ${val.max}`
+  const unit = props.question.unit || ''
+  return `${val.min}${unit} - ${val.max}${unit}`
 })
 
 const getRangeWheelDisplayItems = (type) => {
@@ -470,7 +471,6 @@ const rangeTouchState = {
 }
 
 const handleRangeTouchStart = (type, event) => {
-  event.preventDefault()
   const touch = event.touches[0]
   rangeTouchState.startY = touch.clientY
   rangeTouchState.lastY = touch.clientY
@@ -479,7 +479,6 @@ const handleRangeTouchStart = (type, event) => {
 }
 
 const handleRangeTouchMove = (type, event) => {
-  event.preventDefault()
   const touch = event.touches[0]
   const deltaY = touch.clientY - rangeTouchState.lastY
   rangeTouchState.velocity = deltaY
