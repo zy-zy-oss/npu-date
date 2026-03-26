@@ -1,7 +1,7 @@
 <template>
   <div class="questionnaire-page">
     <!-- 头部 -->
-    <Header :currentIndex="currentIndex" :totalCount="filteredQuestions.length" :title="pageTitle" />
+    <Header :currentIndex="currentIndex" :totalCount="filteredQuestions.length" :title="pageTitle" :backHandler="goToHome" />
 
     <!-- 问卷内容 -->
     <div class="content-wrapper">
@@ -58,7 +58,7 @@ const answers = ref({})
 const questionnaireDone = ref(false)
 
 const pageTitle = computed(() => {
-  return props.type === 'date' ? '约会问卷' : '搭子问卷'
+  return props.type === 'date' ? '返回首页' : '返回首页'
 })
 
 onMounted(async () => {
@@ -194,12 +194,16 @@ const nextQuestion = () => {
   }
 }
 
+const goToHome = () => {
+  router.push('/')
+}
+
 const prevQuestion = () => {
   if (currentIndex.value > 0) {
     currentIndex.value--
   } else {
-    // 第一题时返回基础问卷
-    router.push('/questionnaire')
+    // 第一题时返回首页
+    goToHome()
   }
 }
 

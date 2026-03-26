@@ -14,8 +14,8 @@
                     @keyup.enter="handleSendVerifyCode" />
                 <span class="email-at">@</span>
                 <select v-model="emailDomain" class="email-domain-select">
-                    <option value="nwpu.edu.cn">nwpu.edu.cn</option>
                     <option value="mail.nwpu.edu.cn">mail.nwpu.edu.cn</option>
+                    <option value="nwpu.edu.cn">nwpu.edu.cn</option>
                 </select>
             </div>
             <button class="send-code-btn" @click="handleSendVerifyCode" :disabled="!isValidEmail || emailSending">
@@ -38,7 +38,7 @@
         </div>
         <div class="verify-actions">
             <button class="change-email-link" @click="changeEmail" :disabled="emailCountdown > 0">
-                换邮箱
+                更换邮箱
             </button>
             <span class="countdown-hint">{{ emailCountdown }}s</span>
         </div>

@@ -67,51 +67,23 @@
       </div>
       <div class="slider-value">{{ modelValue }}</div>
     </div>
-    
-    <!-- 双列选择器（范围选择） -->
-    <div v-if="question.type === 'range'" class="range-picker-container">
-      <div class="wheel-picker">
-        <!-- 下限列 -->
-        <div class="wheel-column">
-          <div class="wheel-column-label">下限</div>
-          <div 
-            class="wheel-display"
-            @wheel="handleRangeWheel('min', $event)"
-            @touchstart="handleRangeTouchStart('min', $event)"
-            @touchmove="handleRangeTouchMove('min', $event)"
-            @touchend="handleRangeTouchEnd('min', $event)"
-          >
-            <div 
-              v-for="(val, index) in getRangeWheelDisplayItems('min')" 
-              :key="index"
-              :class="['wheel-display-item', { 'wheel-display-item-selected': val === rangeValue.min }]"
-              @click="selectRangeWheelItem('min', val)"
-            >
-              {{ val }}
-            </div>
-          </div>
-        </div>
-
-        <!-- 上限列 -->
-        <div class="wheel-column">
-          <div class="wheel-column-label">上限</div>
-          <div 
-            class="wheel-display"
-            @wheel="handleRangeWheel('max', $event)"
-            @touchstart="handleRangeTouchStart('max', $event)"
-            @touchmove="handleRangeTouchMove('max', $event)"
-            @touchend="handleRangeTouchEnd('max', $event)"
-          >
-            <div 
-              v-for="(val, index) in getRangeWheelDisplayItems('max')" 
-              :key="index"
-              :class="['wheel-display-item', { 'wheel-display-item-selected': val === rangeValue.max }]"
-              @click="selectRangeWheelItem('max', val)"
-            >
-              {{ val }}
-            </div>
-          </div>
-        </div>
+    <!-- 滑块选择器（范围选择） -->
+    <div v-if="question.type === 'range'" class="range-slider-container">
+      <div class="range-slider-wrapper">
+        <van-slider
+          v-model="sliderRange"
+          :min="question.min ?? 18"
+          :max="question.max ?? 35"
+          :step="1"
+          range
+          vertical
+          bar-height="8px"
+          active-color="#000000"
+          inactive-color="#e0e0e0"
+          block-color="#000000"
+          smooth
+          @update:model-value="handleSliderChange"
+        />
       </div>
       <div v-if="rangeDisplay" class="range-preview">
         {{ rangeDisplay }}
@@ -536,14 +508,18 @@ onMounted(() => {
 })
 
 // ========== 滑块选择器相关 ==========
-const sliderFillStyle = computed(() => {
-  return {
-    width: `${(modelValue / 10) * 100}%`
+const sliderRange = computed({
+  get: () => {
+    const val = rangeValue.value
+    return [val.min, val.max]
+  },
+  set: (newVal) => {
+    emit('update:modelValue', { min: newVal[0], max: newVal[1] })
   }
 })
 
-const selectSliderValue = (value) => {
-  emit('update:modelValue', value)
+const handleSliderChange = (value) => {
+  emit('update:modelValue', { min: value[0], max: value[1] })
 }
 
 // ========== 时间选择器相关 ==========
@@ -1154,6 +1130,34 @@ watch(() => regionValue.value.province, (newProvince) => {
     color: #333;
     font-weight: 700;
     margin-top: 20px;
+  }
+}
+
+/* 滑块选择器容器 */
+.range-slider-container {
+  padding: 16px 0;
+
+  .range-slider-wrapper {
+    height: 200px;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 垂直滑块样式 */
+  :deep(.van-slider--vertical) {
+    height: 100%;
+  }
+
+  .range-preview {
+    padding: 12px;
+    background: #f8f8f8;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #666;
+    margin-top: 16px;
+    text-align: center;
   }
 }
 

@@ -2,11 +2,11 @@
     <!-- 头部 -->
     <div class="header">
         <div class="header-top">
-            <button class="back-btn" @click="$router.back()" title="返回">
+            <button class="back-btn" @click="handleBack" title="返回">
                 <i class="fas fa-arrow-left"></i>
             </button>
             <div class="header-info">
-                <h1 class="page-title">{{ title || '填写您的信息' }}</h1>
+                <h1 class="page-title">{{ title || '返回首页' }}</h1>
                 <div class="progress-info">{{ currentIndex + 1 }}/{{ totalCount }}</div>
             </div>
         </div>
@@ -19,6 +19,8 @@
 </template>
 <script setup>
 import { computed } from 'vue';
+import { useRouter } from 'vue-router';
+const router = useRouter();
 const props = defineProps({
     // 当前题目索引
     currentIndex: {
@@ -34,8 +36,22 @@ const props = defineProps({
     title: {
         type: String,
         default: ''
+    },
+    // 自定义返回处理函数
+    backHandler: {
+        type: Function,
+        default: null
     }
 })
+
+const handleBack = () => {
+    if (props.backHandler) {
+        props.backHandler();
+    } else {
+        router.back();
+    }
+}
+
 const progress = computed(() => {
   return Math.round(((props.currentIndex + 1) /props.totalCount) * 100)
 })

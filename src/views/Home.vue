@@ -91,7 +91,7 @@
           <div class="contact-info">
             <a href="mailto:xilian@example.com" class="contact-item">
               <i class="fas fa-envelope"></i>
-              <span>xilian@example.com</span>
+              <span>npu_date@163.com</span>
             </a>
           </div>
         </div>
