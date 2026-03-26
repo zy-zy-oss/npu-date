@@ -21,11 +21,11 @@
         <!-- 标题 -->
         <div class="header">
           <h1 class="title">
-            <span class="title-line">西联计划</span>
+            <span class="title-line">{{ siteConfig.name }}</span>
             <span class="title-line">已入驻<span class="highlight">{{ schoolCount }}</span>所高校</span>
           </h1>
-          <p class="subtitle">别让好天气和好心情，在等待中过期。</p>
-          <p class="subtitle">Find your NPU at NPU.</p>
+          <p class="subtitle">{{ siteConfig.slogan.zh }}</p>
+          <p class="subtitle">{{ siteConfig.slogan.en }}</p>
 
         </div>
         
@@ -45,43 +45,30 @@
     <!-- 第二屏：介绍 -->
     <div class="intro-section" id="intro">
       <div class="intro-content">
-        <h2 class="intro-title">关于西联计划</h2>
+        <h2 class="intro-title">关于{{ siteConfig.name }}</h2>
         
         <div class="info-grid">
-          <div class="info-card">
-            <h3>科学匹配</h3>
-            <p>基于心理学、社会学理论与LLM驱动的个性化匹配算法，精准匹配志同道合的伙伴</p>
-          </div>
-          
-          <div class="info-card">
-            <h3>多校参与</h3>
-            <p>立足西安，辐射西北。涵盖陕西及周边省份 22 所高校。</p>
-          </div>
-          
-          
-          <div class="info-card">
-            <h3>真实连接</h3>
-            <p>不定期组织同城线下活动，让匹配到的伙伴有机会面对面交流。</p>
-          </div>
-            
-          <div class="info-card">
-            <h3>隐私安全</h3>
-            <p>严格保护用户隐私，所有个人信息加密存储。</p>
+          <div 
+            v-for="(feature, index) in siteConfig.features" 
+            :key="index" 
+            class="info-card"
+          >
+            <h3>{{ feature.title }}</h3>
+            <p>{{ feature.description }}</p>
           </div>
         </div>
         
         <div class="provinces-section">
           <h3>参与高校所在省份</h3>
           <div class="provinces-list">
-            <span class="province-tag highlight">陕西省</span>
-            <span class="province-tag">山西省</span>
-            <span class="province-tag">内蒙古自治区</span>
-            <span class="province-tag">宁夏回族自治区</span>
-            <span class="province-tag">甘肃省</span>
-            <span class="province-tag">四川省</span>
-            <span class="province-tag">重庆市</span>
-            <span class="province-tag">湖北省</span>
-            <span class="province-tag">河南省</span>
+            <span 
+              v-for="(province, index) in siteConfig.provinces" 
+              :key="index" 
+              class="province-tag"
+              :class="{ 'highlight': province === '陕西省' }"
+            >
+              {{ province }}
+            </span>
           </div>
         </div>      
         
@@ -89,9 +76,9 @@
           <h3>联系我们</h3>
           <p>如有任何问题或建议，欢迎通过以下方式联系我们：</p>
           <div class="contact-info">
-            <a href="mailto:xilian@example.com" class="contact-item">
+            <a :href="`mailto:${siteConfig.contact.email}`" class="contact-item">
               <i class="fas fa-envelope"></i>
-              <span>npu_date@163.com</span>
+              <span>{{ siteConfig.contact.email }}</span>
             </a>
           </div>
         </div>
@@ -104,6 +91,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getQuestionnaire } from '@/api'
+import { siteConfig } from '@/config/siteConfig'
 
 const router = useRouter()
 

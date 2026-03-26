@@ -1,7 +1,7 @@
 <template>
   <div class="questionnaire-page">
     <!-- 头部 -->
-    <Header :currentIndex="currentIndex" :totalCount="filteredQuestions.length" :title="pageTitle" :backHandler="goToHome" />
+    <Header :currentIndex="currentIndex" :totalCount="filteredQuestions.length" :title="siteConfig.name" :backHandler="goToHome" />
 
     <!-- 问卷内容 -->
     <div class="content-wrapper">
@@ -35,6 +35,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { getSubQuestionnaire } from '@/api'
+import { siteConfig } from '@/config/siteConfig'
 import Header from './components/Header.vue'
 import EmailVerify from './components/EmailVerify.vue'
 import BaseInfoCard from './components/BaseInfoCard.vue'

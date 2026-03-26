@@ -552,7 +552,7 @@ export const mockNotices = [
   {
     id: 1,
     title: '欢迎使用NPU Date',
-    content: '西北工业大学专属校园交友匹配平台，一周一会双向选择，实名制校园交友。',
+    content: '一周一会，双向选择，实名制校园交友。',
     createdAt: '2024-01-01T10:00:00Z',
     updatedAt: '2024-01-01T10:00:00Z',
     status: 'active'

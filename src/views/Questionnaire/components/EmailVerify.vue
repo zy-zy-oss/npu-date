@@ -14,8 +14,10 @@
                     @keyup.enter="handleSendVerifyCode" />
                 <span class="email-at">@</span>
                 <select v-model="emailDomain" class="email-domain-select">
-                    <option value="mail.nwpu.edu.cn">mail.nwpu.edu.cn</option>
-                    <option value="nwpu.edu.cn">nwpu.edu.cn</option>
+                    <option value="">选择邮箱后缀</option>
+                    <option v-for="item in universityEmailDomains" :key="item.domain" :value="item.domain">
+                        {{ item.domain }}
+                    </option>
                 </select>
             </div>
             <button class="send-code-btn" @click="handleSendVerifyCode" :disabled="!isValidEmail || emailSending">
@@ -37,7 +39,7 @@
             </button>
         </div>
         <div class="verify-actions">
-            <button class="change-email-link" @click="changeEmail" :disabled="emailCountdown > 0">
+            <button class="change-email-link" @click="changeEmail">
                 更换邮箱
             </button>
             <span class="countdown-hint">{{ emailCountdown }}s</span>
@@ -61,8 +63,14 @@ const props = defineProps({
   }
 })
 
+// 大学邮箱后缀列表
+const universityEmailDomains = [
+  { name: '西北工业大学', domain: 'mail.nwpu.edu.cn' },
+  { name: '西北工业大学', domain: 'nwpu.edu.cn' },
+]
+
 const emailLocalPart = ref('')
-const emailDomain = ref('nwpu.edu.cn')
+const emailDomain = ref('')
 const emailVerifyCode = ref('')
 const emailVerifyStep = ref('input') // 'input' 或 'verify'
 const emailSending = ref(false)
@@ -80,10 +88,16 @@ const emailInput = computed(() => {
 const isValidEmail = computed(() => {
   return emailLocalPart.value.trim() !== '' && emailDomain.value !== ''
 })
+// 获取当前选中的学校名
+const currentUniversityName = computed(() => {
+  const found = universityEmailDomains.find(item => item.domain === emailDomain.value)
+  return found ? found.name : ''
+})
+
 // 发送验证码
 const handleSendVerifyCode = async () => {
   if (!isValidEmail.value) {
-    alert('请输入正确的西北工业大学邮箱地址')
+    alert(`请输入正确的${currentUniversityName.value}邮箱地址`)
     return
   }
   

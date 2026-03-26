@@ -1,7 +1,7 @@
 <template>
   <div class="questionnaire-page">
     <!-- 头部 -->
-    <Header :currentIndex="currentIndex" :totalCount="questions.length" />
+    <Header :currentIndex="currentIndex" :totalCount="questions.length" :title="siteConfig.name" />
 
     <!-- 问卷内容 -->
     <div class="content-wrapper">
@@ -35,6 +35,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { getQuestionnaire } from '@/api'
+import { siteConfig } from '@/config/siteConfig'
 
 const router = useRouter()
 import Header from './components/Header.vue'

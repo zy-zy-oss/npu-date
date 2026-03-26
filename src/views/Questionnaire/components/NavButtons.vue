@@ -7,7 +7,8 @@
       @click="handlePrev"
       title="上一题"
     >
-      <i class="fas fa-chevron-left"></i>
+      <i class="fas fa-arrow-left"></i>
+      <span>上一题</span>
     </button>
 
     <!-- 下一题/完成按钮 -->
@@ -18,7 +19,8 @@
       @click="handleNext"
       title="下一题"
     >
-      <i class="fas fa-chevron-right"></i>
+      <span>下一题</span>
+      <i class="fas fa-arrow-right"></i>
     </button>
 
     <!-- 完成按钮 -->
@@ -79,19 +81,19 @@ const handleComplete = () => {
   width: 100%;
   max-width: 580px;
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center;
   gap: 10px;
 }
 
 /* 导航按钮基础样式 */
 .nav-btn {
-  height: 36px;
-  width: 36px;
-  padding: 0;
-  font-size: 16px;
-  font-weight: 400;
-  border: 1px solid #e0e0e0;
+  height: 40px;
+  width: auto;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
   border-radius: 6px;
   cursor: pointer;
   background: #fff;
@@ -100,13 +102,12 @@ const handleComplete = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0;
-  min-width: 36px;
+  gap: 8px;
+  min-width: 100px;
 
   &:hover:not(:disabled) {
     background: #f5f5f5;
     color: #333;
-    border-color: #ccc;
   }
 
   &:active:not(:disabled) {
@@ -120,29 +121,23 @@ const handleComplete = () => {
 
   /* 上一题按钮 - 左对齐 */
   &.prev-btn {
-    align-self: flex-start;
+    justify-content: flex-start;
   }
 
   /* 下一题按钮 - 右对齐 */
   &.next-btn {
-    margin-left: auto;
+    justify-content: flex-end;
   }
 
   /* 完成按钮 - 右对齐，特殊样式 */
   &.complete-btn {
-    margin-left: auto;
-    width: auto;
-    padding: 0 20px;
     background: #333;
     color: #fff;
     font-weight: 500;
-    min-width: auto;
-    border-color: #333;
 
     &:hover:not(:disabled) {
       background: #1a1a1a;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      border-color: #1a1a1a;
     }
 
     &:active:not(:disabled) {
@@ -157,12 +152,13 @@ const handleComplete = () => {
     gap: 8px;
 
     .nav-btn {
-      width: 36px;
       height: 36px;
-      min-width: 36px;
+      padding: 0 12px;
+      font-size: 13px;
+      min-width: 80px;
+      gap: 6px;
 
       &.complete-btn {
-        width: auto;
         padding: 0 16px;
       }
     }
