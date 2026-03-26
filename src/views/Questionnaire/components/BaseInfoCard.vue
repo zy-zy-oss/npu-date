@@ -514,12 +514,22 @@ const sliderRange = computed({
     return [val.min, val.max]
   },
   set: (newVal) => {
-    emit('update:modelValue', { min: newVal[0], max: newVal[1] })
+    // 确保值在有效范围内
+    const min = props.question.min ?? 18
+    const max = props.question.max ?? 35
+    const clampedMin = Math.max(min, newVal[0])
+    const clampedMax = Math.min(max, newVal[1])
+    emit('update:modelValue', { min: clampedMin, max: clampedMax })
   }
 })
 
 const handleSliderChange = (value) => {
-  emit('update:modelValue', { min: value[0], max: value[1] })
+  // 确保值在有效范围内
+  const min = props.question.min ?? 18
+  const max = props.question.max ?? 35
+  const clampedMin = Math.max(min, value[0])
+  const clampedMax = Math.min(max, value[1])
+  emit('update:modelValue', { min: clampedMin, max: clampedMax })
 }
 
 // ========== 时间选择器相关 ==========
@@ -1138,7 +1148,7 @@ watch(() => regionValue.value.province, (newProvince) => {
   padding: 16px 0;
 
   .range-slider-wrapper {
-    height: 200px;
+    height: 280px;
     padding: 0 8px;
     display: flex;
     align-items: center;
@@ -1151,9 +1161,8 @@ watch(() => regionValue.value.province, (newProvince) => {
   }
 
   .range-preview {
-    padding: 12px;
-    background: #f8f8f8;
-    border-radius: 6px;
+    padding: 8px 0;
+    background: transparent;
     font-size: 14px;
     color: #666;
     margin-top: 16px;
