@@ -149,15 +149,31 @@ const confirmEmailVerify = async () => {
     // 2. 保存邮箱到localStorage，用于后续问卷提交
     localStorage.setItem('userEmail', sentEmail.value)
     
-    // 3. 直接提交问卷数据（使用邮箱标识）
-    const questionnaireData = userStore.getSubQuestionnaire(props.questionnaireType)
-    if (questionnaireData) {
-      await submitQuestionnaireWithVerify({
-        type: props.questionnaireType,
-        answers: questionnaireData,
-        email: sentEmail.value  // 添加邮箱到提交数据中
-      })
+    // 3. 合并提交所有问卷数据（基础问卷 + 选择的问卷）
+    const baseData = userStore.questionnaire
+    const buddyData = userStore.subQuestionnaire_buddy
+    const dateData = userStore.subQuestionnaire_date
+    
+    // 确定用户选择的问卷类型和数据
+    let selectedType = 'buddy' // 默认搭子
+    let selectedData = buddyData || {}
+    
+    if (dateData && !buddyData) {
+      selectedType = 'date'
+      selectedData = dateData
     }
+    
+    // 合并基础问卷和选择的问卷
+    const mergedAnswers = {
+      base: baseData || {},
+      [selectedType]: selectedData
+    }
+    
+    await submitQuestionnaireWithVerify({
+      type: selectedType,
+      answers: mergedAnswers,
+      email: sentEmail.value
+    })
     
     // 跳转到完成页面
     clearInterval(countdownInterval)
