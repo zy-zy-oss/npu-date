@@ -41,20 +41,28 @@ export const siteConfig = {
   // 核心特点
   features: [
     {
-      title: '多元匹配',
+      title: '简单易行',
+      description: '您只需要花五分钟时间填写一个简单的问卷并验证邮箱，即可静待本轮匹配结果。'
+    },  
+    {
+      title: '多元契合',
       description: '基于心理学、社会学理论与LLM驱动的个性化匹配算法，多样化匹配志同道合的伙伴。'
     },
     {
-      title: '走向彼此',
+      title: '奔赴相见',
       description: '不定期发起线下活动，让匹配到的伙伴有机会面对面交流。'
     },
     {
-      title: '多方参与',
-      description: '后续计划涵盖周边多所高校。'
+      title: '共聚山海',
+      description: '未来将联动周边多所高校，让更多伙伴一同加入。'
     },    
     {
-      title: '隐私安全',
-      description: '严格保护用户隐私，所有个人信息加密存储。'
+      title: '安心守护',
+      description: '严格守护你的隐私，所有个人信息均加密处理。'
+    },
+    {
+      title: ' 更多功能',
+      description: '敬请期待。'
     }
   ]
 }

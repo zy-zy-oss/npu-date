@@ -629,7 +629,7 @@ const handleStart = () => {
   .countdown-value {
     font-size: 32px;
     color: #333;
-    font-weight: 300;
+    font-weight: 600;
     letter-spacing: 2px;
     white-space: nowrap;
   }
