@@ -12,11 +12,13 @@ export const siteConfig = {
   // 网站slogan
   slogan: {
     zh: '别让好天气和好心情，在等待中过期。',
-    en: 'Find your NicePU at NPU.'
+    en: 'Find your NicePengyoU at NPU.',
+    en: 'Find your NicePengYou at NPU.'
+
   },
   
   // 网站简介
-  description: '基于心理学、社会学理论与LLM驱动的个性化匹配算法，精准匹配志同道合的伙伴。立足西安，辐射西北，涵盖陕西及周边省份22所高校。',
+  description: '基于心理学、社会学理论与LLM驱动的个性化匹配算法，精准匹配志同道合的伙伴。',
   
   // 联系信息
   contact: {
@@ -39,17 +41,17 @@ export const siteConfig = {
   // 核心特点
   features: [
     {
-      title: '科学匹配',
-      description: '基于心理学、社会学理论与LLM驱动的个性化匹配算法，精准匹配志同道合的伙伴'
+      title: '多元匹配',
+      description: '基于心理学、社会学理论与LLM驱动的个性化匹配算法，多样化匹配志同道合的伙伴。'
     },
     {
-      title: '多校参与',
-      description: '立足西安，辐射西北。涵盖陕西及周边省份 22 所高校。'
+      title: '走向彼此',
+      description: '不定期发起线下活动，让匹配到的伙伴有机会面对面交流。'
     },
     {
-      title: '真实连接',
-      description: '不定期组织同城线下活动，让匹配到的伙伴有机会面对面交流。'
-    },
+      title: '多方参与',
+      description: '后续计划涵盖周边多所高校。'
+    },    
     {
       title: '隐私安全',
       description: '严格保护用户隐私，所有个人信息加密存储。'
